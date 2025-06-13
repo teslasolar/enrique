@@ -1,0 +1,13 @@
+{
+  "education": [
+    {
+      "id": 1,
+      "institution": "Instituto Tecnológico de La Laguna",
+      "degree": "Ingeniería",
+      "fieldOfStudy": "Ingeniería química",
+      "startDate": "2015",
+      "endDate": "2019",
+      "description": "Bachelor's degree in Chemical Engineering"
+    }
+  ]
+}

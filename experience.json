@@ -1,0 +1,42 @@
+{
+  "experience": [
+    {
+      "id": 1,
+      "title": "Chemical Engineer",
+      "company": "The Hershey Company",
+      "location": "Monterrey, Nuevo León, Mexico",
+      "startDate": "Nov 2023",
+      "endDate": "Present",
+      "duration": "1 yr 8 mos",
+      "description": "Full-time position. LinkedIn helped me get this job.",
+      "employmentType": "Full-time",
+      "locationType": "On-site"
+    },
+    {
+      "id": 2,
+      "title": "Brewing Process Supervisor",
+      "company": "AB InBev",
+      "location": "Torreón, Coahuila, Mexico",
+      "startDate": "Sep 2019",
+      "endDate": "Nov 2023",
+      "duration": "4 yrs 3 mos",
+      "description": "Full-time supervisory role in brewing operations.",
+      "employmentType": "Full-time",
+      "locationType": "On-site"
+    },
+    {
+      "id": 3,
+      "title": "Brewing Intern",
+      "company": "AB InBev",
+      "location": "Torreón, Coahuila, Mexico",
+      "startDate": "Dec 2018",
+      "endDate": "Sep 2019",
+      "duration": "10 mos",
+      "description": "Internship position in brewing operations.",
+      "employmentType": "Full-time",
+      "locationType": "On-site"
+    }
+  ],
+  "totalExperienceYears": 6,
+  "totalYearsAtABInBev": 5
+}

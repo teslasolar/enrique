@@ -1,0 +1,42 @@
+{
+  "summary": {
+    "name": "Enrique Martinez Vargas",
+    "title": "Chemical Engineer | Manufacturing Engineer",
+    "yearsOfExperience": 6,
+    "currentEmployer": "The Hershey Company",
+    "location": "Monterrey, Nuevo León, Mexico",
+    "industries": ["Food Manufacturing", "Brewing", "Chemical Engineering"],
+    "keyStrengths": [
+      "Industrial Process Design",
+      "Operations Optimization",
+      "Cost Reduction",
+      "Quality Improvement",
+      "Sustainable Solutions"
+    ]
+  },
+  "careerProgression": {
+    "totalYears": 6,
+    "companies": [
+      {
+        "name": "The Hershey Company",
+        "duration": "1 yr 8 mos",
+        "role": "Chemical Engineer"
+      },
+      {
+        "name": "AB InBev",
+        "duration": "5 yrs",
+        "roles": ["Brewing Process Supervisor", "Brewing Intern"]
+      }
+    ]
+  },
+  "educationalBackground": {
+    "degree": "Bachelor's in Chemical Engineering",
+    "institution": "Instituto Tecnológico de La Laguna",
+    "graduationYear": "2019"
+  },
+  "professionalDevelopment": {
+    "certifications": 4,
+    "latestCertification": "Brewmaster 2022",
+    "specializations": ["Brewing", "Lean Six Sigma", "Manufacturing"]
+  }
+}

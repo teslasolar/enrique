@@ -1,0 +1,49 @@
+{
+  "skills": [
+    {
+      "name": "Process Simulation",
+      "category": "Technical"
+    },
+    {
+      "name": "Data Analysis",
+      "category": "Technical"
+    },
+    {
+      "name": "Project Management",
+      "category": "Management"
+    },
+    {
+      "name": "Industrial Process Design",
+      "category": "Technical"
+    },
+    {
+      "name": "Operations Optimization",
+      "category": "Technical"
+    },
+    {
+      "name": "Cost Reduction",
+      "category": "Business"
+    },
+    {
+      "name": "Quality Improvement",
+      "category": "Technical"
+    },
+    {
+      "name": "Sustainable Solutions",
+      "category": "Technical"
+    },
+    {
+      "name": "Brewing Process",
+      "category": "Industry Specific"
+    },
+    {
+      "name": "Manufacturing Engineering",
+      "category": "Technical"
+    }
+  ],
+  "topSkills": [
+    "Process Simulation",
+    "Data Analysis",
+    "Project Management"
+  ]
+}

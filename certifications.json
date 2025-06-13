@@ -1,0 +1,40 @@
+{
+  "certifications": [
+    {
+      "id": 1,
+      "name": "Brewmaster 2022",
+      "issuingOrganization": "AB InBev",
+      "issueDate": "Nov 2022",
+      "expirationDate": "Dec 2030",
+      "credentialId": "",
+      "credentialUrl": ""
+    },
+    {
+      "id": 2,
+      "name": "Brewmaster 2020",
+      "issuingOrganization": "AB InBev",
+      "issueDate": "Mar 2020",
+      "expirationDate": "Dec 2030",
+      "credentialId": "",
+      "credentialUrl": ""
+    },
+    {
+      "id": 3,
+      "name": "Lean Six Sigma White Belt",
+      "issuingOrganization": "AB InBev",
+      "issueDate": "Dec 2019",
+      "expirationDate": "Dec 2025",
+      "credentialId": "",
+      "credentialUrl": ""
+    },
+    {
+      "id": 4,
+      "name": "Toefl ITP",
+      "issuingOrganization": "ETS",
+      "issueDate": "May 2019",
+      "expirationDate": "",
+      "credentialId": "",
+      "credentialUrl": ""
+    }
+  ]
+}
