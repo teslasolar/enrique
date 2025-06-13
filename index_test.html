@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrique Martinez Vargas - Component Test</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Chemical Engineer with 6+ years of experience">
+    <meta name="keywords" content="Chemical Engineer, Manufacturing Engineer">
+    <meta name="author" content="Enrique Martinez Vargas">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="picture/face.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/themes.css">
+    
+    <style>
+        /* Loading and status styles */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .component-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .component-status h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+        }
+        
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-icon.loading {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+        
+        .status-icon.success {
+            background: #28a745;
+        }
+        
+        .status-icon.error {
+            background: #dc3545;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .error-container {
+            padding: 20px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            margin: 20px;
+            color: #856404;
+        }
+        
+        /* Ensure containers have min-height */
+        [id$="-container"] {
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Loading Components...</h2>
+            <p id="loading-status">Initializing...</p>
+        </div>
+    </div>
+
+    <!-- Component Status Panel -->
+    <div class="component-status" id="component-status">
+        <h3>Component Status</h3>
+        <div id="status-list"></div>
+    </div>
+
+    <!-- Component Containers -->
+    <div id="navbar-container"></div>
+    <div id="hero-container"></div>
+    <div id="about-container"></div>
+    <div id="experience-container"></div>
+    <div id="education-container"></div>
+    <div id="skills-container"></div>
+    <div id="certifications-container"></div>
+    <div id="contact-container"></div>
+    <div id="footer-container"></div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Component System -->
+    <script src="js/component-system.js"></script>
+    
+    <!-- Initialize -->
+    <script>
+        // Component status tracking
+        const componentStatus = {
+            navbar: 'loading',
+            hero: 'loading',
+            about: 'loading',
+            experience: 'loading',
+            education: 'loading',
+            skills: 'loading',
+            certifications: 'loading',
+            contact: 'loading',
+            footer: 'loading'
+        };
+        
+        // Update status display
+        function updateStatus() {
+            const statusList = document.getElementById('status-list');
+            statusList.innerHTML = Object.entries(componentStatus)
+                .map(([name, status]) => `
+                    <div class="status-item">
+                        <span class="status-icon ${status}"></span>
+                        <span>${name}: ${status}</span>
+                    </div>
+                `).join('');
+        }
+        
+        // Update loading message
+        function updateLoadingMessage(message) {
+            document.getElementById('loading-status').textContent = message;
+        }
+        
+        // Listen for component events
+        window.addEventListener('component:loaded', (e) => {
+            const { name } = e.detail;
+            componentStatus[name] = 'success';
+            updateStatus();
+            updateLoadingMessage(`Loaded ${name} component`);
+            console.log(`✅ Component loaded: ${name}`);
+        });
+        
+        window.addEventListener('component:error', (e) => {
+            const { name, error } = e.detail;
+            componentStatus[name] = 'error';
+            updateStatus();
+            console.error(`❌ Component error: ${name}`, error);
+            
+            // Show error in container
+            const container = document.getElementById(`${name}-container`);
+            if (container) {
+                container.innerHTML = `
+                    <div class="error-container">
+                        <h3>Error loading ${name} component</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        window.addEventListener('data:loaded', (e) => {
+            const { name } = e.detail;
+            console.log(`📊 Data loaded: ${name}`);
+        });
+        
+        window.addEventListener('system:ready', (e) => {
+            console.log('🚀 Component system ready!', e.detail);
+            
+            // Hide loading overlay
+            setTimeout(() => {
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }, 500);
+            
+            // Initialize app features
+            initializeApp();
+        });
+        
+        // Initialize app features
+        function initializeApp() {
+            // Apply saved theme
+            const savedTheme = localStorage.getItem('theme') || 'default';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Back to top button
+            const backToTop = document.querySelector('.back-to-top');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 500) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
+            });
+            
+            backToTop.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Initialize animations
+            initAnimations();
+        }
+        
+        // Initialize animations
+        function initAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            // Wait a bit for components to load
+            setTimeout(() => {
+                document.querySelectorAll('.section-title, .timeline-item, .education-card, .skill-category').forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    observer.observe(el);
+                });
+            }, 1000);
+        }
+        
+        // Start initialization
+        updateStatus();
+        
+        // Initialize component system
+        componentSystem.init().catch(error => {
+            console.error('Failed to initialize component system:', error);
+            updateLoadingMessage('Error: ' + error.message);
+        });
+        
+        // Debug: Log component system to console
+        window.cs = componentSystem;
+        console.log('Component System available as window.cs');
+    </script>
+</body>
+</html>

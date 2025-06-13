@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Memory - Gamepad Enabled</title>
+    <style>
+        body {
+            margin: 0;
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            width: 500px;
+            height: 500px;
+            border: 2px solid #107C10;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.5);
+            background-color: #1a1a1a;
+        }
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .card-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card.selected .card-inner {
+            box-shadow: 0 0 10px 5px #107C10;
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            border: 2px solid #333;
+            box-sizing: border-box;
+        }
+        .card-front {
+            background: linear-gradient(135deg, #107C10, #0b540b);
+        }
+        .card-back {
+            background-color: #333;
+            transform: rotateY(180deg);
+            font-size: 3rem;
+        }
+        .card.matched .card-inner {
+            box-shadow: 0 0 15px #107C10;
+        }
+        .card.matched .card-back {
+            background-color: rgba(16, 124, 16, 0.3);
+        }
+        .controls {
+            margin-top: 20px;
+            color: #AAA;
+            font-size: 14px;
+            text-align: center;
+        }
+        .score {
+            font-size: 24px;
+            color: #107C10;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            width: 500px;
+        }
+        .btn {
+            background: #107C10;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background: #0c5e0c;
+        }
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .game-over.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .game-over h2 {
+            font-size: 3rem;
+            color: #107C10;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(16, 124, 16, 0.5);
+        }
+        .game-over p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 600px) {
+            .game-board {
+                width: 300px;
+                height: 300px;
+                padding: 10px;
+                gap: 5px;
+            }
+            .score {
+                width: 300px;
+            }
+            .card-back {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="score">
+        <div>Moves: <span id="moves">0</span></div>
+        <div>Matches: <span id="matches">0</span>/<span id="total">8</span></div>
+        <div>Time: <span id="time">00:00</span></div>
+    </div>
+    <div class="game-board" id="game-board"></div>
+    <div class="controls">
+        <p>Use D-Pad or Left Stick to navigate. Press A to flip a card.</p>
+        <button id="backBtn" class="btn">Back to Library</button>
+    </div>
+    <div class="game-over" id="game-over">
+        <h2>Game Complete!</h2>
+        <p>You matched all pairs in <span id="final-moves">0</span> moves and <span id="final-time">00:00</span>!</p>
+        <button id="restart-btn" class="btn">Play Again</button>
+    </div>
+
+    <script>
+    // Super-compressed Emoji Memory Game with gamepad support
+    (()=>{
+        // Game elements
+        const gameBoard = document.getElementById('game-board');
+        const movesDisplay = document.getElementById('moves');
+        const matchesDisplay = document.getElementById('matches');
+        const timeDisplay = document.getElementById('time');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalMovesDisplay = document.getElementById('final-moves');
+        const finalTimeDisplay = document.getElementById('final-time');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../library.html';
+        });
+        
+        // Game state
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let gameTime = 0;
+        let gameInterval;
+        let selectedCardIndex = 0;
+        let canFlip = true;
+        let gameActive = false;
+        
+        // Gamepad state
+        let gamepads = {};
+        let deadzone = 0.25;
+        let lastButtonState = {
+            0: false,  // A
+            12: false, // Up
+            13: false, // Down
+            14: false, // Left
+            15: false  // Right
+        };
+        
+        // Emoji options
+        const emojis = ['🚀', '🌟', '🎮', '🔥', '🎯', '🎲', '🎪', '🎭', '🎨', '🎧', '🎸', '🎬', '📱', '🚗', '🌈', '🍕'];
+        
+        // Initialize game
+        function init() {
+            // Reset game state
+            cards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            moves = 0;
+            gameTime = 0;
+            selectedCardIndex = 0;
+            canFlip = true;
+            gameActive = true;
+            
+            // Clear previous interval
+            if (gameInterval) clearInterval(gameInterval);
+            
+            // Update display
+            movesDisplay.textContent = moves;
+            matchesDisplay.textContent = matchedPairs;
+            timeDisplay.textContent = '00:00';
+            
+            // Hide game over screen
+            gameOverScreen.classList.remove('show');
+            
+            // Create cards
+            createCards();
+            
+            // Start timer
+            gameInterval = setInterval(() => {
+                if (gameActive) {
+                    gameTime++;
+                    updateTimer();
+                }
+            }, 1000);
+        }
+        
+        // Create cards
+        function createCards() {
+            // Clear the board
+            gameBoard.innerHTML = '';
+            
+            // Choose emojis for this game
+            const gameEmojis = emojis.slice(0, 8);
+            
+            // Create pairs
+            const cardContents = [...gameEmojis, ...gameEmojis];
+            
+            // Shuffle
+            shuffle(cardContents);
+            
+            // Create card elements
+            for (let i = 0; i < cardContents.length; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = i;
+                
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front"></div>
+                        <div class="card-face card-back">${cardContents[i]}</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => flipCard(i));
+                
+                gameBoard.appendChild(card);
+                cards.push({
+                    element: card,
+                    emoji: cardContents[i],
+                    isFlipped: false,
+                    isMatched: false
+                });
+            }
+            
+            // Select first card
+            selectCard(0);
+        }
+        
+        // Fisher-Yates shuffle
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Flip a card
+        function flipCard(index) {
+            if (!gameActive || !canFlip || cards[index].isFlipped || cards[index].isMatched) return;
+            
+            // Flip the card
+            cards[index].isFlipped = true;
+            cards[index].element.classList.add('flipped');
+            flippedCards.push(index);
+            
+            // Check if two cards are flipped
+            if (flippedCards.length === 2) {
+                moves++;
+                movesDisplay.textContent = moves;
+                canFlip = false;
+                
+                // Check for match
+                const [index1, index2] = flippedCards;
+                if (cards[index1].emoji === cards[index2].emoji) {
+                    // Match!
+                    setTimeout(() => {
+                        cards[index1].isMatched = true;
+                        cards[index2].isMatched = true;
+                        cards[index1].element.classList.add('matched');
+                        cards[index2].element.classList.add('matched');
+                        
+                        matchedPairs++;
+                        matchesDisplay.textContent = matchedPairs;
+                        
+                        flippedCards = [];
+                        canFlip = true;
+                        
+                        // Check for game completion
+                        if (matchedPairs === 8) {
+                            gameComplete();
+                        }
+                    }, 500);
+                } else {
+                    // No match, flip back
+                    setTimeout(() => {
+                        cards[index1].isFlipped = false;
+                        cards[index2].isFlipped = false;
+                        cards[index1].element.classList.remove('flipped');
+                        cards[index2].element.classList.remove('flipped');
+                        
+                        flippedCards = [];
+                        canFlip = true;
+                    }, 1000);
+                }
+            }
+        }
+        
+        // Select a card (highlight for gamepad navigation)
+        function selectCard(index) {
+            // Remove selection from all cards
+            cards.forEach(card => card.element.classList.remove('selected'));
+            
+            // Add selection to the current card
+            cards[index].element.classList.add('selected');
+            selectedCardIndex = index;
+            
+            // Scroll into view if needed
+            cards[index].element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Navigate cards with gamepad
+        function navigateCards(direction) {
+            const rows = 4;
+            const cols = 4;
+            
+            // Calculate current position
+            const currentRow = Math.floor(selectedCardIndex / cols);
+            const currentCol = selectedCardIndex % cols;
+            
+            let newRow = currentRow;
+            let newCol = currentCol;
+            
+            switch(direction) {
+                case 'up':
+                    newRow = (currentRow - 1 + rows) % rows;
+                    break;
+                case 'down':
+                    newRow = (currentRow + 1) % rows;
+                    break;
+                case 'left':
+                    newCol = (currentCol - 1 + cols) % cols;
+                    break;
+                case 'right':
+                    newCol = (currentCol + 1) % cols;
+                    break;
+            }
+            
+            const newIndex = newRow * cols + newCol;
+            selectCard(newIndex);
+        }
+        
+        // Update timer display
+        function updateTimer() {
+            const minutes = Math.floor(gameTime / 60).toString().padStart(2, '0');
+            const seconds = (gameTime % 60).toString().padStart(2, '0');
+            timeDisplay.textContent = `${minutes}:${seconds}`;
+        }
+        
+        // Game complete
+        function gameComplete() {
+            gameActive = false;
+            
+            // Update final stats
+            finalMovesDisplay.textContent = moves;
+            finalTimeDisplay.textContent = timeDisplay.textContent;
+            
+            // Show game over screen after a delay
+            setTimeout(() => {
+                gameOverScreen.classList.add('show');
+            }, 1000);
+        }
+        
+        // Restart game
+        function restartGame() {
+            init();
+        }
+        
+        // Gamepad handling
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepads[e.gamepad.index] = e.gamepad;
+            console.log('Gamepad connected:', e.gamepad.id);
+        });
+        
+        window.addEventListener('gamepaddisconnected', (e) => {
+            delete gamepads[e.gamepad.index];
+            console.log('Gamepad disconnected');
+        });
+        
+        // Gamepad polling
+        function pollGamepads() {
+            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            for (let i = 0; i < gps.length; i++) {
+                if (gps[i]) {
+                    const gp = gps[i];
+                    
+                    // A button to flip card
+                    if (gp.buttons[0] && gp.buttons[0].pressed && !lastButtonState[0]) {
+                        if (gameActive) {
+                            flipCard(selectedCardIndex);
+                        } else {
+                            restartGame();
+                        }
+                    }
+                    
+                    // D-pad navigation
+                    if (gp.buttons[12] && gp.buttons[12].pressed && !lastButtonState[12]) {
+                        navigateCards('up');
+                    }
+                    if (gp.buttons[13] && gp.buttons[13].pressed && !lastButtonState[13]) {
+                        navigateCards('down');
+                    }
+                    if (gp.buttons[14] && gp.buttons[14].pressed && !lastButtonState[14]) {
+                        navigateCards('left');
+                    }
+                    if (gp.buttons[15] && gp.buttons[15].pressed && !lastButtonState[15]) {
+                        navigateCards('right');
+                    }
+                    
+                    // Update button states
+                    lastButtonState[0] = gp.buttons[0] && gp.buttons[0].pressed;
+                    lastButtonState[12] = gp.buttons[12] && gp.buttons[12].pressed;
+                    lastButtonState[13] = gp.buttons[13] && gp.buttons[13].pressed;
+                    lastButtonState[14] = gp.buttons[14] && gp.buttons[14].pressed;
+                    lastButtonState[15] = gp.buttons[15] && gp.buttons[15].pressed;
+                    
+                    // Analog stick handling with throttling
+                    const leftX = gp.axes[0];
+                    const leftY = gp.axes[1];
+                    
+                    if (Math.abs(leftX) > deadzone || Math.abs(leftY) > deadzone) {
+                        if (!lastStickState.active) {
+                            lastStickState.active = true;
+                            
+                            // Determine direction
+                            if (Math.abs(leftX) > Math.abs(leftY)) {
+                                // Horizontal movement
+                                if (leftX < -deadzone) navigateCards('left');
+                                else if (leftX > deadzone) navigateCards('right');
+                            } else {
+                                // Vertical movement
+                                if (leftY < -deadzone) navigateCards('up');
+                                else if (leftY > deadzone) navigateCards('down');
+                            }
+                        }
+                    } else {
+                        lastStickState.active = false;
+                    }
+                }
+            }
+            
+            requestAnimationFrame(pollGamepads);
+        }
+        
+        // Track analog stick state
+        const lastStickState = {
+            active: false
+        };
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (gameActive) {
+                switch(e.key) {
+                    case 'ArrowUp':
+                        navigateCards('up');
+                        break;
+                    case 'ArrowDown':
+                        navigateCards('down');
+                        break;
+                    case 'ArrowLeft':
+                        navigateCards('left');
+                        break;
+                    case 'ArrowRight':
+                        navigateCards('right');
+                        break;
+                    case ' ':
+                    case 'Enter':
+                        flipCard(selectedCardIndex);
+                        break;
+                }
+            } else if (e.key === ' ' || e.key === 'Enter') {
+                restartGame();
+            }
+        });
+        
+        // Restart button
+        restartBtn.addEventListener('click', restartGame);
+        
+        // Start polling for gamepad input
+        pollGamepads();
+        
+        // Initialize game
+        init();
+    })();
+    </script>
+</body>
+</html>

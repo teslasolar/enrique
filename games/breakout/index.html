@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakout Game - Gamepad Enabled</title>
+    <style>
+        body {
+            margin: 0;
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        canvas {
+            border: 2px solid #107C10;
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.5);
+        }
+        .controls {
+            margin-top: 20px;
+            color: #AAA;
+            font-size: 14px;
+            text-align: center;
+        }
+        .score {
+            font-size: 24px;
+            color: #107C10;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            width: 644px;
+        }
+        .btn {
+            background: #107C10;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background: #0c5e0c;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">
+        <div>Score: <span id="score">0</span></div>
+        <div>Lives: <span id="lives">3</span></div>
+    </div>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <div class="controls">
+        <p>Use D-Pad or Left Stick to move the paddle. Press A to launch the ball.</p>
+        <button id="backBtn" class="btn">Back to Library</button>
+    </div>
+
+    <script>
+    // Super-compressed Breakout game with gamepad support
+    (()=>{
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const scoreDisplay = document.getElementById('score');
+        const livesDisplay = document.getElementById('lives');
+        
+        // Game state variables
+        let paddle, ball, bricks, score, lives, gameState;
+        let gamepads = {};
+        let deadzone = 0.25;
+        let ballLaunched = false;
+        let gameLoop;
+        
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../library.html';
+        });
+        
+        // Game states
+        const STATE = {
+            PAUSED: 0,
+            PLAYING: 1,
+            GAMEOVER: 2,
+            LEVEL_COMPLETE: 3
+        };
+        
+        // Brick colors
+        const COLORS = [
+            '#ff0000', // Red
+            '#ff9900', // Orange
+            '#ffff00', // Yellow
+            '#00cc00', // Green
+            '#0099ff'  // Blue
+        ];
+        
+        // Initialize game
+        function init() {
+            // Reset game state
+            score = 0;
+            lives = 3;
+            gameState = STATE.PAUSED;
+            ballLaunched = false;
+            scoreDisplay.textContent = score;
+            livesDisplay.textContent = lives;
+            
+            // Create paddle
+            paddle = {
+                width: 100,
+                height: 15,
+                x: width / 2 - 50,
+                y: height - 30,
+                speed: 10,
+                color: '#107C10'
+            };
+            
+            // Create ball
+            resetBall();
+            
+            // Create bricks
+            createBricks();
+            
+            // Clear any existing game loop
+            if (gameLoop) cancelAnimationFrame(gameLoop);
+            
+            // Start game loop
+            gameLoop = requestAnimationFrame(update);
+        }
+        
+        // Reset ball to initial position
+        function resetBall() {
+            ball = {
+                radius: 8,
+                x: width / 2,
+                y: height - 40,
+                dx: 0,
+                dy: 0,
+                speed: 5,
+                color: '#ffffff'
+            };
+            ballLaunched = false;
+        }
+        
+        // Launch ball
+        function launchBall() {
+            if (!ballLaunched && gameState === STATE.PAUSED) {
+                ballLaunched = true;
+                gameState = STATE.PLAYING;
+                
+                // Random angle between -45 and 45 degrees (in radians)
+                const angle = (Math.random() * 90 - 45) * Math.PI / 180;
+                ball.dx = ball.speed * Math.sin(angle);
+                ball.dy = -ball.speed * Math.cos(angle);
+            }
+        }
+        
+        // Create bricks
+        function createBricks() {
+            bricks = [];
+            const rows = 5;
+            const cols = 8;
+            const brickWidth = 70;
+            const brickHeight = 25;
+            const padding = 10;
+            const offsetX = 35;
+            const offsetY = 50;
+            
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    bricks.push({
+                        x: c * (brickWidth + padding) + offsetX,
+                        y: r * (brickHeight + padding) + offsetY,
+                        width: brickWidth,
+                        height: brickHeight,
+                        color: COLORS[r],
+                        status: 1
+                    });
+                }
+            }
+        }
+        
+        // Game update loop
+        function update() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw border
+            ctx.strokeStyle = '#107C10';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, width, height);
+            
+            // Draw paddle
+            ctx.fillStyle = paddle.color;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            
+            // Draw ball
+            ctx.fillStyle = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw bricks
+            bricks.forEach(brick => {
+                if (brick.status === 1) {
+                    ctx.fillStyle = brick.color;
+                    ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+                    
+                    // Add 3D effect
+                    ctx.fillStyle = '#ffffff33';
+                    ctx.fillRect(brick.x, brick.y, brick.width, 5);
+                    ctx.fillRect(brick.x, brick.y, 5, brick.height);
+                    
+                    ctx.fillStyle = '#00000033';
+                    ctx.fillRect(brick.x + brick.width - 5, brick.y, 5, brick.height);
+                    ctx.fillRect(brick.x, brick.y + brick.height - 5, brick.width, 5);
+                }
+            });
+            
+            // If game is paused, show instructions or game over
+            if (gameState === STATE.PAUSED && !ballLaunched) {
+                // Show "Press A to start" message
+                ctx.font = '20px Arial';
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.fillText('Press A to Launch Ball', width/2, height/2);
+                
+                // Ball follows paddle
+                ball.x = paddle.x + paddle.width / 2;
+            } else if (gameState === STATE.GAMEOVER) {
+                // Show game over message
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, width, height);
+                
+                ctx.font = '36px Arial';
+                ctx.fillStyle = '#ff4040';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', width/2, height/2 - 30);
+                
+                ctx.font = '24px Arial';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(`Final Score: ${score}`, width/2, height/2 + 20);
+                
+                ctx.font = '18px Arial';
+                ctx.fillText('Press A to Play Again', width/2, height/2 + 60);
+                
+                gameLoop = requestAnimationFrame(update);
+                return;
+            } else if (gameState === STATE.LEVEL_COMPLETE) {
+                // Show level complete message
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, width, height);
+                
+                ctx.font = '36px Arial';
+                ctx.fillStyle = '#107C10';
+                ctx.textAlign = 'center';
+                ctx.fillText('LEVEL COMPLETE!', width/2, height/2 - 30);
+                
+                ctx.font = '24px Arial';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(`Score: ${score}`, width/2, height/2 + 20);
+                
+                ctx.font = '18px Arial';
+                ctx.fillText('Press A to Continue', width/2, height/2 + 60);
+                
+                gameLoop = requestAnimationFrame(update);
+                return;
+            } else if (gameState === STATE.PLAYING) {
+                // Move ball
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+                
+                // Wall collision
+                if (ball.x + ball.radius > width || ball.x - ball.radius < 0) {
+                    ball.dx = -ball.dx;
+                }
+                
+                if (ball.y - ball.radius < 0) {
+                    ball.dy = -ball.dy;
+                }
+                
+                // Ball falls below paddle
+                if (ball.y + ball.radius > height) {
+                    lives--;
+                    livesDisplay.textContent = lives;
+                    
+                    if (lives <= 0) {
+                        gameState = STATE.GAMEOVER;
+                    } else {
+                        resetBall();
+                        gameState = STATE.PAUSED;
+                    }
+                }
+                
+                // Paddle collision
+                if (
+                    ball.y + ball.radius > paddle.y &&
+                    ball.y - ball.radius < paddle.y + paddle.height &&
+                    ball.x > paddle.x &&
+                    ball.x < paddle.x + paddle.width
+                ) {
+                    // Calculate bounce angle based on where ball hits paddle
+                    const hitPos = (ball.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
+                    const angle = hitPos * Math.PI / 3; // -60 to 60 degrees
+                    
+                    ball.dx = ball.speed * Math.sin(angle);
+                    ball.dy = -ball.speed * Math.cos(angle);
+                }
+                
+                // Brick collision
+                let levelComplete = true;
+                
+                bricks.forEach(brick => {
+                    if (brick.status === 1) {
+                        levelComplete = false;
+                        
+                        if (
+                            ball.x + ball.radius > brick.x &&
+                            ball.x - ball.radius < brick.x + brick.width &&
+                            ball.y + ball.radius > brick.y &&
+                            ball.y - ball.radius < brick.y + brick.height
+                        ) {
+                            // Determine which side was hit
+                            const overlapLeft = ball.x + ball.radius - brick.x;
+                            const overlapRight = brick.x + brick.width - (ball.x - ball.radius);
+                            const overlapTop = ball.y + ball.radius - brick.y;
+                            const overlapBottom = brick.y + brick.height - (ball.y - ball.radius);
+                            
+                            // Find smallest overlap
+                            const min = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                            
+                            if (min === overlapLeft || min === overlapRight) {
+                                ball.dx = -ball.dx;
+                            } else {
+                                ball.dy = -ball.dy;
+                            }
+                            
+                            brick.status = 0;
+                            score += 10;
+                            scoreDisplay.textContent = score;
+                        }
+                    }
+                });
+                
+                if (levelComplete) {
+                    gameState = STATE.LEVEL_COMPLETE;
+                }
+            }
+            
+            gameLoop = requestAnimationFrame(update);
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (gameState === STATE.PLAYING) {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        paddle.x = Math.max(0, paddle.x - paddle.speed);
+                        break;
+                    case 'ArrowRight':
+                        paddle.x = Math.min(width - paddle.width, paddle.x + paddle.speed);
+                        break;
+                }
+            } else if (gameState === STATE.PAUSED && !ballLaunched && e.key === ' ') {
+                launchBall();
+            } else if ((gameState === STATE.GAMEOVER || gameState === STATE.LEVEL_COMPLETE) && e.key === ' ') {
+                if (gameState === STATE.LEVEL_COMPLETE) {
+                    // Create new level
+                    createBricks();
+                    resetBall();
+                    gameState = STATE.PAUSED;
+                } else {
+                    // Restart game
+                    init();
+                }
+            }
+        });
+        
+        // Gamepad handling
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepads[e.gamepad.index] = e.gamepad;
+            console.log('Gamepad connected:', e.gamepad.id);
+        });
+        
+        window.addEventListener('gamepaddisconnected', (e) => {
+            delete gamepads[e.gamepad.index];
+            console.log('Gamepad disconnected');
+        });
+        
+        // Gamepad polling
+        function pollGamepads() {
+            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            for (let i = 0; i < gps.length; i++) {
+                if (gps[i]) {
+                    const gp = gps[i];
+                    
+                    // Handle paddle movement
+                    if (gameState === STATE.PLAYING || gameState === STATE.PAUSED) {
+                        // D-pad
+                        if (gp.buttons[14] && gp.buttons[14].pressed) {
+                            paddle.x = Math.max(0, paddle.x - paddle.speed);
+                        }
+                        if (gp.buttons[15] && gp.buttons[15].pressed) {
+                            paddle.x = Math.min(width - paddle.width, paddle.x + paddle.speed);
+                        }
+                        
+                        // Left stick
+                        const leftX = gp.axes[0];
+                        if (Math.abs(leftX) > deadzone) {
+                            paddle.x += leftX * paddle.speed;
+                            paddle.x = Math.max(0, Math.min(width - paddle.width, paddle.x));
+                        }
+                    }
+                    
+                    // A button to launch ball or restart
+                    if (gp.buttons[0] && gp.buttons[0].pressed) {
+                        // Debounce button press
+                        if (!gp.buttons[0].wasPressed) {
+                            gp.buttons[0].wasPressed = true;
+                            
+                            if (gameState === STATE.PAUSED && !ballLaunched) {
+                                launchBall();
+                            } else if (gameState === STATE.GAMEOVER) {
+                                init();
+                            } else if (gameState === STATE.LEVEL_COMPLETE) {
+                                createBricks();
+                                resetBall();
+                                gameState = STATE.PAUSED;
+                            }
+                        }
+                    } else {
+                        // Reset button state
+                        if (gp.buttons[0]) {
+                            gp.buttons[0].wasPressed = false;
+                        }
+                    }
+                }
+            }
+            
+            requestAnimationFrame(pollGamepads);
+        }
+        
+        // Start polling for gamepad input
+        pollGamepads();
+        
+        // Initialize game
+        init();
+    })();
+    </script>
+</body>
+</html>

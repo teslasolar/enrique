@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game - Gamepad Enabled</title>
+    <style>
+        body {
+            margin: 0;
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        canvas {
+            border: 2px solid #107C10;
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.5);
+        }
+        .controls {
+            margin-top: 20px;
+            color: #AAA;
+            font-size: 14px;
+            text-align: center;
+        }
+        .score {
+            font-size: 24px;
+            color: #107C10;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            width: 644px;
+        }
+        .btn {
+            background: #107C10;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background: #0c5e0c;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">
+        <div id="player1Score">Player 1: 0</div>
+        <div id="player2Score">Player 2: 0</div>
+    </div>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <div class="controls">
+        <p>Left Stick controls left paddle. Right Stick controls right paddle.</p>
+        <button id="backBtn" class="btn">Back to Library</button>
+    </div>
+
+    <script>
+    // Super-compressed Pong game with gamepad support
+    (()=>{
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const p1ScoreDisplay = document.getElementById('player1Score');
+        const p2ScoreDisplay = document.getElementById('player2Score');
+        
+        // Game state variables
+        let leftPaddle, rightPaddle, ball, scoreP1, scoreP2, gameState;
+        let gamepads = {};
+        let deadzone = 0.25;
+        let computerControlled = true;
+        let computerDifficulty = 0.05; // How quickly the computer reacts (0-1)
+        let gameLoop;
+        
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../library.html';
+        });
+        
+        // Game states
+        const STATE = {
+            PLAYING: 0,
+            SCORED: 1,
+            GAME_OVER: 2
+        };
+        
+        // Initialize game
+        function init() {
+            // Reset game state
+            scoreP1 = 0;
+            scoreP2 = 0;
+            gameState = STATE.PLAYING;
+            updateScoreDisplay();
+            
+            // Create paddles
+            const paddleHeight = 80;
+            const paddleWidth = 15;
+            
+            leftPaddle = {
+                x: 20,
+                y: height / 2 - paddleHeight / 2,
+                width: paddleWidth,
+                height: paddleHeight,
+                dy: 0,
+                speed: 8,
+                color: '#107C10'
+            };
+            
+            rightPaddle = {
+                x: width - 20 - paddleWidth,
+                y: height / 2 - paddleHeight / 2,
+                width: paddleWidth,
+                height: paddleHeight,
+                dy: 0,
+                speed: 8,
+                color: '#107C10'
+            };
+            
+            // Create ball
+            resetBall();
+            
+            // Clear any existing game loop
+            if (gameLoop) cancelAnimationFrame(gameLoop);
+            
+            // Start game loop
+            gameLoop = requestAnimationFrame(update);
+        }
+        
+        // Reset ball to center with random direction
+        function resetBall() {
+            ball = {
+                x: width / 2,
+                y: height / 2,
+                radius: 10,
+                dx: (Math.random() > 0.5 ? 1 : -1) * 5,
+                dy: (Math.random() * 2 - 1) * 5,
+                speed: 5,
+                color: '#ffffff'
+            };
+            
+            // Ensure minimum vertical movement
+            if (Math.abs(ball.dy) < 1) {
+                ball.dy = ball.dy < 0 ? -1 : 1;
+            }
+            
+            gameState = STATE.PLAYING;
+        }
+        
+        // Update score display
+        function updateScoreDisplay() {
+            p1ScoreDisplay.textContent = `Player 1: ${scoreP1}`;
+            p2ScoreDisplay.textContent = `Player 2: ${scoreP2}`;
+        }
+        
+        // Computer AI for right paddle
+        function updateComputer() {
+            if (computerControlled) {
+                // Predict where the ball will be
+                if (ball.dx > 0) { // Only move if ball is coming toward computer
+                    // Simple AI: move towards ball with some delay
+                    const targetY = ball.y - (rightPaddle.height / 2);
+                    const currentY = rightPaddle.y;
+                    const diff = targetY - currentY;
+                    
+                    // Move toward ball, but with limited "skill"
+                    rightPaddle.y += diff * computerDifficulty;
+                    
+                    // Keep paddle on screen
+                    rightPaddle.y = Math.max(0, Math.min(height - rightPaddle.height, rightPaddle.y));
+                }
+            }
+        }
+        
+        // Game update loop
+        function update() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw center line
+            ctx.strokeStyle = '#107C1033';
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw paddles
+            ctx.fillStyle = leftPaddle.color;
+            ctx.fillRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
+            
+            ctx.fillStyle = rightPaddle.color;
+            ctx.fillRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
+            
+            // Draw ball
+            ctx.fillStyle = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Game logic
+            if (gameState === STATE.PLAYING) {
+                // Move ball
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+                
+                // Ball collision with top and bottom walls
+                if (ball.y + ball.radius > height || ball.y - ball.radius < 0) {
+                    ball.dy = -ball.dy;
+                    ball.y = ball.y + ball.radius > height ? height - ball.radius : ball.radius;
+                }
+                
+                // Ball collision with paddles
+                // Left paddle
+                if (
+                    ball.x - ball.radius < leftPaddle.x + leftPaddle.width &&
+                    ball.x + ball.radius > leftPaddle.x &&
+                    ball.y > leftPaddle.y &&
+                    ball.y < leftPaddle.y + leftPaddle.height
+                ) {
+                    // Calculate bounce angle based on where the ball hits the paddle
+                    const hitPos = (ball.y - (leftPaddle.y + leftPaddle.height / 2)) / (leftPaddle.height / 2);
+                    const angle = hitPos * Math.PI / 4; // -45 to 45 degrees
+                    
+                    ball.dx = ball.speed * Math.cos(angle);
+                    ball.dy = ball.speed * Math.sin(angle);
+                    
+                    // Increase speed slightly
+                    ball.speed += 0.2;
+                    
+                    // Ensure ball moves away from paddle
+                    if (ball.dx < 0) ball.dx = -ball.dx;
+                    
+                    // Prevent ball from getting stuck in paddle
+                    ball.x = leftPaddle.x + leftPaddle.width + ball.radius;
+                }
+                
+                // Right paddle
+                if (
+                    ball.x + ball.radius > rightPaddle.x &&
+                    ball.x - ball.radius < rightPaddle.x + rightPaddle.width &&
+                    ball.y > rightPaddle.y &&
+                    ball.y < rightPaddle.y + rightPaddle.height
+                ) {
+                    // Calculate bounce angle based on where the ball hits the paddle
+                    const hitPos = (ball.y - (rightPaddle.y + rightPaddle.height / 2)) / (rightPaddle.height / 2);
+                    const angle = hitPos * Math.PI / 4; // -45 to 45 degrees
+                    
+                    ball.dx = -ball.speed * Math.cos(angle);
+                    ball.dy = ball.speed * Math.sin(angle);
+                    
+                    // Increase speed slightly
+                    ball.speed += 0.2;
+                    
+                    // Ensure ball moves away from paddle
+                    if (ball.dx > 0) ball.dx = -ball.dx;
+                    
+                    // Prevent ball from getting stuck in paddle
+                    ball.x = rightPaddle.x - ball.radius;
+                }
+                
+                // Check for scoring
+                if (ball.x + ball.radius > width) {
+                    // Player 1 scores
+                    scoreP1++;
+                    updateScoreDisplay();
+                    
+                    // Check if game is over
+                    if (scoreP1 >= 7) {
+                        gameState = STATE.GAME_OVER;
+                        drawGameOverMessage("Player 1 Wins!");
+                    } else {
+                        drawScoredMessage("Player 1 Scores!");
+                        // Reset ball after a short delay
+                        setTimeout(resetBall, 1500);
+                    }
+                } else if (ball.x - ball.radius < 0) {
+                    // Player 2 scores
+                    scoreP2++;
+                    updateScoreDisplay();
+                    
+                    // Check if game is over
+                    if (scoreP2 >= 7) {
+                        gameState = STATE.GAME_OVER;
+                        drawGameOverMessage(computerControlled ? "Computer Wins!" : "Player 2 Wins!");
+                    } else {
+                        drawScoredMessage(computerControlled ? "Computer Scores!" : "Player 2 Scores!");
+                        // Reset ball after a short delay
+                        setTimeout(resetBall, 1500);
+                    }
+                }
+                
+                // Update computer AI
+                updateComputer();
+            }
+            
+            gameLoop = requestAnimationFrame(update);
+        }
+        
+        // Draw message when someone scores
+        function drawScoredMessage(message) {
+            gameState = STATE.SCORED;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, height/2 - 50, width, 100);
+            
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#107C10';
+            ctx.textAlign = 'center';
+            ctx.fillText(message, width/2, height/2 + 10);
+        }
+        
+        // Draw game over message
+        function drawGameOverMessage(message) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#107C10';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', width/2, height/2 - 30);
+            
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(message, width/2, height/2 + 20);
+            
+            ctx.font = '18px Arial';
+            ctx.fillText('Press A to Play Again', width/2, height/2 + 60);
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            // Left paddle controls
+            if (e.key === 'w' || e.key === 'W') {
+                leftPaddle.y = Math.max(0, leftPaddle.y - leftPaddle.speed);
+            } else if (e.key === 's' || e.key === 'S') {
+                leftPaddle.y = Math.min(height - leftPaddle.height, leftPaddle.y + leftPaddle.speed);
+            }
+            
+            // Right paddle controls (if not computer controlled)
+            if (!computerControlled) {
+                if (e.key === 'ArrowUp') {
+                    rightPaddle.y = Math.max(0, rightPaddle.y - rightPaddle.speed);
+                } else if (e.key === 'ArrowDown') {
+                    rightPaddle.y = Math.min(height - rightPaddle.height, rightPaddle.y + rightPaddle.speed);
+                }
+            }
+            
+            // Restart game
+            if (e.key === ' ' && gameState === STATE.GAME_OVER) {
+                init();
+            }
+        });
+        
+        // Gamepad handling
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepads[e.gamepad.index] = e.gamepad;
+            console.log('Gamepad connected:', e.gamepad.id);
+            // When gamepad connects, automatically switch to two player mode
+            computerControlled = false;
+        });
+        
+        window.addEventListener('gamepaddisconnected', (e) => {
+            delete gamepads[e.gamepad.index];
+            console.log('Gamepad disconnected');
+            // If no gamepads left, switch back to computer mode
+            if (Object.keys(gamepads).length === 0) {
+                computerControlled = true;
+            }
+        });
+        
+        // Gamepad polling
+        function pollGamepads() {
+            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            for (let i = 0; i < gps.length; i++) {
+                if (gps[i]) {
+                    const gp = gps[i];
+                    
+                    // Handle paddle movement
+                    if (gameState === STATE.PLAYING) {
+                        // Left stick controls left paddle
+                        const leftY = gp.axes[1];
+                        if (Math.abs(leftY) > deadzone) {
+                            leftPaddle.y += leftY * leftPaddle.speed;
+                            leftPaddle.y = Math.max(0, Math.min(height - leftPaddle.height, leftPaddle.y));
+                        }
+                        
+                        // Right stick controls right paddle in two-player mode
+                        if (!computerControlled) {
+                            const rightY = gp.axes[3];
+                            if (Math.abs(rightY) > deadzone) {
+                                rightPaddle.y += rightY * rightPaddle.speed;
+                                rightPaddle.y = Math.max(0, Math.min(height - rightPaddle.height, rightPaddle.y));
+                            }
+                        }
+                        
+                        // D-pad for left paddle
+                        if (gp.buttons[12] && gp.buttons[12].pressed) {
+                            leftPaddle.y = Math.max(0, leftPaddle.y - leftPaddle.speed);
+                        }
+                        if (gp.buttons[13] && gp.buttons[13].pressed) {
+                            leftPaddle.y = Math.min(height - leftPaddle.height, leftPaddle.y + leftPaddle.speed);
+                        }
+                    }
+                    
+                    // A button to restart game
+                    if (gameState === STATE.GAME_OVER && gp.buttons[0] && gp.buttons[0].pressed) {
+                        // Debounce button press
+                        if (!gp.buttons[0].wasPressed) {
+                            gp.buttons[0].wasPressed = true;
+                            init();
+                        }
+                    } else {
+                        // Reset button state
+                        if (gp.buttons[0]) {
+                            gp.buttons[0].wasPressed = false;
+                        }
+                    }
+                    
+                    // Y button to toggle computer/two player mode
+                    if (gp.buttons[3] && gp.buttons[3].pressed) {
+                        if (!gp.buttons[3].wasPressed) {
+                            gp.buttons[3].wasPressed = true;
+                            computerControlled = !computerControlled;
+                            // Update player 2 label
+                            p2ScoreDisplay.textContent = computerControlled ? 
+                                `Computer: ${scoreP2}` : `Player 2: ${scoreP2}`;
+                        }
+                    } else {
+                        if (gp.buttons[3]) {
+                            gp.buttons[3].wasPressed = false;
+                        }
+                    }
+                }
+            }
+            
+            requestAnimationFrame(pollGamepads);
+        }
+        
+        // Start polling for gamepad input
+        pollGamepads();
+        
+        // Initialize game
+        init();
+    })();
+    </script>
+</body>
+</html>

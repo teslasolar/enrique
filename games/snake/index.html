@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game - Gamepad Enabled</title>
+    <style>
+        body {
+            margin: 0;
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        canvas {
+            border: 2px solid #107C10;
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.5);
+        }
+        .controls {
+            margin-top: 20px;
+            color: #AAA;
+            font-size: 14px;
+            text-align: center;
+        }
+        .score {
+            font-size: 24px;
+            color: #107C10;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .btn {
+            background: #107C10;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background: #0c5e0c;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">Score: <span id="score">0</span></div>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <div class="controls">
+        <p>Use D-Pad or Left Stick to control the snake. Press A to restart after game over.</p>
+        <button id="backBtn" class="btn">Back to Library</button>
+    </div>
+
+    <script>
+    // Super-compressed Snake game with gamepad support
+    (()=>{
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const blockSize = 20;
+        const widthInBlocks = width / blockSize;
+        const heightInBlocks = height / blockSize;
+        const scoreDisplay = document.getElementById('score');
+        
+        // Game state variables
+        let snake, food, score, gameOver, direction, nextDirection, gameLoop;
+        let gamepads = {};
+        let deadzone = 0.25;
+        
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../library.html';
+        });
+        
+        // Initialize game
+        function init() {
+            score = 0;
+            scoreDisplay.textContent = score;
+            direction = 'right';
+            nextDirection = direction;
+            gameOver = false;
+            
+            // Create snake (array of coordinates)
+            snake = [
+                {x: 3, y: Math.floor(heightInBlocks / 2)},
+                {x: 2, y: Math.floor(heightInBlocks / 2)},
+                {x: 1, y: Math.floor(heightInBlocks / 2)}
+            ];
+            
+            // Create initial food
+            createFood();
+            
+            // Clear any existing game loop
+            if (gameLoop) clearInterval(gameLoop);
+            
+            // Start game loop
+            gameLoop = setInterval(gameStep, 100);
+        }
+        
+        // Create food at random position
+        function createFood() {
+            // Generate random position
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (widthInBlocks - 2)) + 1;
+                y = Math.floor(Math.random() * (heightInBlocks - 2)) + 1;
+            } while (snake.some(segment => segment.x === x && segment.y === y));
+            food = {x, y};
+        }
+        
+        // One step of the game
+        function gameStep() {
+            if (gameOver) return;
+            
+            // Update direction based on pending move
+            direction = nextDirection;
+            
+            // Calculate new head position
+            const head = {x: snake[0].x, y: snake[0].y};
+            
+            switch(direction) {
+                case 'up': head.y--; break;
+                case 'down': head.y++; break;
+                case 'left': head.x--; break;
+                case 'right': head.x++; break;
+            }
+            
+            // Check for collisions
+            if (
+                head.x < 0 || head.x >= widthInBlocks || 
+                head.y < 0 || head.y >= heightInBlocks ||
+                snake.some(segment => segment.x === head.x && segment.y === head.y)
+            ) {
+                gameOver = true;
+                drawGameOver();
+                return;
+            }
+            
+            // Add new head
+            snake.unshift(head);
+            
+            // Check if food eaten
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                scoreDisplay.textContent = score;
+                createFood();
+            } else {
+                // Remove tail if no food eaten
+                snake.pop();
+            }
+            
+            // Draw everything
+            draw();
+        }
+        
+        // Draw game elements
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw border
+            ctx.strokeStyle = '#107C10';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, width, height);
+            
+            // Draw snake
+            snake.forEach((segment, i) => {
+                ctx.fillStyle = i === 0 ? '#25e025' : '#107C10'; // Head is brighter
+                ctx.fillRect(segment.x * blockSize, segment.y * blockSize, blockSize, blockSize);
+                
+                // Add eyes to head
+                if (i === 0) {
+                    ctx.fillStyle = '#000';
+                    // Eyes position depends on direction
+                    const eyeSize = 4;
+                    if (direction === 'right' || direction === 'left') {
+                        const eyeY = segment.y * blockSize + blockSize / 3;
+                        ctx.fillRect(segment.x * blockSize + (direction === 'right' ? 3*blockSize/4 : blockSize/4), eyeY, eyeSize, eyeSize);
+                    } else {
+                        const eyeX = segment.x * blockSize + blockSize / 3;
+                        ctx.fillRect(eyeX, segment.y * blockSize + (direction === 'down' ? 3*blockSize/4 : blockSize/4), eyeSize, eyeSize);
+                    }
+                }
+            });
+            
+            // Draw food
+            ctx.fillStyle = '#ff4040';
+            ctx.beginPath();
+            const foodX = food.x * blockSize + blockSize/2;
+            const foodY = food.y * blockSize + blockSize/2;
+            ctx.arc(foodX, foodY, blockSize/2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Game over screen
+        function drawGameOver() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#ff4040';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', width/2, height/2 - 30);
+            
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(`Score: ${score}`, width/2, height/2 + 20);
+            
+            ctx.font = '18px Arial';
+            ctx.fillText('Press "A" to Play Again', width/2, height/2 + 60);
+        }
+        
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                    if (direction !== 'down') nextDirection = 'up';
+                    break;
+                case 'ArrowDown':
+                    if (direction !== 'up') nextDirection = 'down';
+                    break;
+                case 'ArrowLeft':
+                    if (direction !== 'right') nextDirection = 'left';
+                    break;
+                case 'ArrowRight':
+                    if (direction !== 'left') nextDirection = 'right';
+                    break;
+                case ' ': // Space to restart
+                    if (gameOver) init();
+                    break;
+            }
+        });
+        
+        // Gamepad handling
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepads[e.gamepad.index] = e.gamepad;
+            console.log('Gamepad connected:', e.gamepad.id);
+        });
+        
+        window.addEventListener('gamepaddisconnected', (e) => {
+            delete gamepads[e.gamepad.index];
+            console.log('Gamepad disconnected');
+        });
+        
+        // Gamepad polling
+        function pollGamepads() {
+            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            for (let i = 0; i < gps.length; i++) {
+                if (gps[i]) {
+                    const gp = gps[i];
+                    
+                    // D-pad
+                    if (gp.buttons[12] && gp.buttons[12].pressed && direction !== 'down') {
+                        nextDirection = 'up';
+                    }
+                    if (gp.buttons[13] && gp.buttons[13].pressed && direction !== 'up') {
+                        nextDirection = 'down';
+                    }
+                    if (gp.buttons[14] && gp.buttons[14].pressed && direction !== 'right') {
+                        nextDirection = 'left';
+                    }
+                    if (gp.buttons[15] && gp.buttons[15].pressed && direction !== 'left') {
+                        nextDirection = 'right';
+                    }
+                    
+                    // Left stick
+                    const leftX = gp.axes[0];
+                    const leftY = gp.axes[1];
+                    
+                    if (leftX < -deadzone && direction !== 'right') {
+                        nextDirection = 'left';
+                    } else if (leftX > deadzone && direction !== 'left') {
+                        nextDirection = 'right';
+                    }
+                    
+                    if (leftY < -deadzone && direction !== 'down') {
+                        nextDirection = 'up';
+                    } else if (leftY > deadzone && direction !== 'up') {
+                        nextDirection = 'down';
+                    }
+                    
+                    // A button to restart
+                    if (gameOver && gp.buttons[0] && gp.buttons[0].pressed) {
+                        init();
+                    }
+                }
+            }
+            
+            requestAnimationFrame(pollGamepads);
+        }
+        
+        // Start polling for gamepad input
+        pollGamepads();
+        
+        // Initialize game
+        init();
+    })();
+    </script>
+</body>
+</html>

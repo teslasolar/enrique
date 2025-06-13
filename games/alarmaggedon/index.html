@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlarmAggedon - SCADA Navigator</title>
+    <style>
+        :root {
+            --primary: #0077cc;
+            --warning: #ff9900;
+            --danger: #cc3300;
+            --success: #33cc33;
+            --dark: #111111;
+            --light: #f8f8f8;
+            --gray: #444444;
+            --border: #555555;
+        }
+        
+        body {
+            margin: 0;
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        
+        .game-container {
+            width: 800px;
+            height: 600px;
+            background: var(--dark);
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 119, 204, 0.5);
+        }
+        
+        .status-bar {
+            height: 40px;
+            background: #222;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 14px;
+        }
+        
+        .system-time {
+            color: var(--light);
+        }
+        
+        .user-info {
+            color: var(--primary);
+        }
+        
+        .status-indicators {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .indicator.online {
+            background-color: var(--success);
+            box-shadow: 0 0 5px var(--success);
+        }
+        
+        .indicator.warning {
+            background-color: var(--warning);
+            box-shadow: 0 0 5px var(--warning);
+        }
+        
+        .indicator.critical {
+            background-color: var(--danger);
+            box-shadow: 0 0 5px var(--danger);
+            animation: blink 1s infinite;
+        }
+        
+        .sidebar {
+            width: 150px;
+            height: calc(100% - 40px);
+            background: #1a1a1a;
+            border-right: 1px solid var(--border);
+            float: left;
+            padding: 10px 0;
+        }
+        
+        .menu-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background-color: #333;
+        }
+        
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+        }
+        
+        .content-area {
+            margin-left: 150px;
+            height: calc(100% - 40px);
+            position: relative;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .window-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 5px;
+        }
+        
+        .panel {
+            background: #222;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .control-item {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .control-item.active {
+            outline: 2px solid var(--primary);
+        }
+        
+        .control-item:hover {
+            background: #333;
+        }
+        
+        .control-label {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+        
+        .control-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .gauge-container {
+            margin-top: 5px;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .gauge-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.5s;
+        }
+        
+        .gauge-fill.warning {
+            background: var(--warning);
+        }
+        
+        .gauge-fill.danger {
+            background: var(--danger);
+        }
+        
+        .alarm-list {
+            height: 200px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+        
+        .alarm-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #333;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alarm-item.warning {
+            background-color: rgba(255, 153, 0, 0.1);
+            border-left: 3px solid var(--warning);
+        }
+        
+        .alarm-item.critical {
+            background-color: rgba(204, 51, 0, 0.1);
+            border-left: 3px solid var(--danger);
+        }
+        
+        .alarm-item.acknowledged {
+            background-color: rgba(102, 102, 102, 0.1);
+            border-left: 3px solid #666;
+        }
+        
+        .alarm-text {
+            flex: 1;
+        }
+        
+        .alarm-time {
+            color: #999;
+            font-size: 11px;
+            margin-right: 10px;
+        }
+        
+        .alarm-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .alarm-actions button {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 3px;
+            padding: 3px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .alarm-actions button:hover {
+            background: #444;
+        }
+        
+        .alarm-actions button.acknowledge {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .alarm-actions button.acknowledge:hover {
+            background: #0066aa;
+        }
+        
+        .trend-graph {
+            height: 200px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .graph-lines {
+            position: absolute;
+            width: calc(100% - 30px);
+            height: calc(100% - 30px);
+            top: 15px;
+            left: 15px;
+        }
+        
+        .h-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #333;
+        }
+        
+        .v-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #333;
+        }
+        
+        .trend-line {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            height: calc(100% - 30px);
+            overflow: hidden;
+        }
+        
+        .trend-path {
+            stroke: var(--primary);
+            stroke-width: 2px;
+            fill: none;
+        }
+        
+        .trend-area {
+            fill: rgba(0, 119, 204, 0.1);
+            stroke: none;
+        }
+        
+        .status-bar-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: #222;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .status-message {
+            flex: 1;
+        }
+        
+        .gamepad-hint {
+            margin-left: auto;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .hint-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .button-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #444;
+            border-radius: 3px;
+            font-size: 10px;
+            color: #fff;
+        }
+        
+        .popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #222;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            width: 400px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .popup.active {
+            display: block;
+        }
+        
+        .popup-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 5px;
+        }
+        
+        .popup-content {
+            margin-bottom: 20px;
+        }
+        
+        .popup-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background: #444;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background: #0066aa;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            border-color: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background: #e68a00;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: #b32d00;
+        }
+        
+        .score-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--primary);
+            font-size: 14px;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .overlay.active {
+            display: flex;
+        }
+        
+        .overlay-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 119, 204, 0.5);
+        }
+        
+        .overlay-content {
+            margin-bottom: 30px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .game-controls {
+            margin-top: 20px;
+            color: #AAA;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .game-score {
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+        }
+        
+        .back-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        
+        .back-btn:hover {
+            background: #0066aa;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 850px) {
+            .game-container {
+                width: 100%;
+                height: calc(100vh - 100px);
+                max-width: 800px;
+            }
+            
+            .game-score {
+                width: 100%;
+                max-width: 800px;
+                padding: 0 10px;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-score">
+        <div>Score: <span id="score">0</span></div>
+        <div>Level: <span id="level">1</span></div>
+        <div>Time: <span id="time">00:00</span></div>
+    </div>
+    
+    <div class="game-container" id="game-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="system-time">2025-05-13 14:32:45</div>
+            <div class="user-info">Operator: Thomas F. | Security Level: Administrator</div>
+            <div class="status-indicators">
+                <div class="indicator online" title="System Online"></div>
+                <div class="indicator warning" title="Warning Status"></div>
+                <div class="indicator" id="critical-indicator" title="Critical Status"></div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="menu-item active" data-screen="overview">Overview</div>
+            <div class="menu-item" data-screen="alarms">Alarms</div>
+            <div class="menu-item" data-screen="equipment">Equipment</div>
+            <div class="menu-item" data-screen="trends">Trends</div>
+            <div class="menu-item" data-screen="settings">Settings</div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Overview Screen -->
+            <div class="screen active" id="overview-screen">
+                <div class="window-title">System Overview</div>
+                
+                <div class="panel">
+                    <div class="control-grid">
+                        <div class="control-item" data-control="pump1">
+                            <div class="control-label">Pump 1</div>
+                            <div class="control-value">ON</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="pump2">
+                            <div class="control-label">Pump 2</div>
+                            <div class="control-value">OFF</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="pump3">
+                            <div class="control-label">Pump 3</div>
+                            <div class="control-value">ON</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="temp1">
+                            <div class="control-label">Temperature 1</div>
+                            <div class="control-value">72°F</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill" style="width: 40%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="temp2">
+                            <div class="control-label">Temperature 2</div>
+                            <div class="control-value">156°F</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill warning" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="pressure1">
+                            <div class="control-label">Pressure 1</div>
+                            <div class="control-value">235 PSI</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill danger" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="flow1">
+                            <div class="control-label">Flow Rate 1</div>
+                            <div class="control-value">120 GPM</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="flow2">
+                            <div class="control-label">Flow Rate 2</div>
+                            <div class="control-value">42 GPM</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill" style="width: 30%"></div>
+                            </div>
+                        </div>
+                        <div class="control-item" data-control="valve1">
+                            <div class="control-label">Valve 1</div>
+                            <div class="control-value">OPEN</div>
+                            <div class="gauge-container">
+                                <div class="gauge-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="window-title">Recent Alarms</div>
+                    <div class="alarm-list">
+                        <div class="alarm-item warning" data-alarm-id="1">
+                            <div class="alarm-text">Temperature 2 above threshold (150°F)</div>
+                            <div class="alarm-time">14:25:12</div>
+                            <div class="alarm-actions">
+                                <button class="acknowledge">Ack</button>
+                            </div>
+                        </div>
+                        <div class="alarm-item critical" data-alarm-id="2">
+                            <div class="alarm-text">Pressure 1 critically high (235 PSI)</div>
+                            <div class="alarm-time">14:30:05</div>
+                            <div class="alarm-actions">
+                                <button class="acknowledge">Ack</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alarms Screen -->
+            <div class="screen" id="alarms-screen">
+                <div class="window-title">Alarm Management</div>
+                
+                <div class="panel">
+                    <div class="alarm-list" id="full-alarm-list">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Equipment Screen -->
+            <div class="screen" id="equipment-screen">
+                <div class="window-title">Equipment Status</div>
+                
+                <div class="panel">
+                    <div class="control-grid" id="equipment-grid">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="window-title">Equipment Control</div>
+                    <div id="equipment-control-panel">
+                        <p>Select equipment from above to control.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trends Screen -->
+            <div class="screen" id="trends-screen">
+                <div class="window-title">System Trends</div>
+                
+                <div class="panel">
+                    <div class="trend-graph">
+                        <div class="graph-lines">
+                            <div class="h-line" style="top: 25%"></div>
+                            <div class="h-line" style="top: 50%"></div>
+                            <div class="h-line" style="top: 75%"></div>
+                            <div class="v-line" style="left: 25%"></div>
+                            <div class="v-line" style="left: 50%"></div>
+                            <div class="v-line" style="left: 75%"></div>
+                        </div>
+                        <svg class="trend-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path class="trend-area" d="M0,100 L0,80 C10,75 20,85 30,70 C40,55 50,60 60,40 C70,20 80,30 90,25 L100,20 L100,100 Z"></path>
+                            <path class="trend-path" d="M0,80 C10,75 20,85 30,70 C40,55 50,60 60,40 C70,20 80,30 90,25 L100,20"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="window-title">Trend Settings</div>
+                    <div class="control-grid">
+                        <div class="control-item" data-trend="temp1">
+                            <div class="control-label">Temperature 1</div>
+                            <div class="control-value">Selected</div>
+                        </div>
+                        <div class="control-item" data-trend="temp2">
+                            <div class="control-label">Temperature 2</div>
+                            <div class="control-value">Not Selected</div>
+                        </div>
+                        <div class="control-item" data-trend="pressure1">
+                            <div class="control-label">Pressure 1</div>
+                            <div class="control-value">Not Selected</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Screen -->
+            <div class="screen" id="settings-screen">
+                <div class="window-title">System Settings</div>
+                
+                <div class="panel">
+                    <div class="control-grid">
+                        <div class="control-item" data-setting="alarmThresholds">
+                            <div class="control-label">Alarm Thresholds</div>
+                            <div class="control-value">Configure</div>
+                        </div>
+                        <div class="control-item" data-setting="operatorAccess">
+                            <div class="control-label">Operator Access</div>
+                            <div class="control-value">Manage</div>
+                        </div>
+                        <div class="control-item" data-setting="backupSchedule">
+                            <div class="control-label">Backup Schedule</div>
+                            <div class="control-value">Daily</div>
+                        </div>
+                        <div class="control-item" data-setting="maintenance">
+                            <div class="control-label">Maintenance Mode</div>
+                            <div class="control-value">OFF</div>
+                        </div>
+                        <div class="control-item" data-setting="systemReboot">
+                            <div class="control-label">System Reboot</div>
+                            <div class="control-value">Execute</div>
+                        </div>
+                        <div class="control-item" data-setting="factoryReset">
+                            <div class="control-label">Factory Reset</div>
+                            <div class="control-value">Execute</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar Bottom -->
+        <div class="status-bar-bottom">
+            <div class="status-message">Ready</div>
+            <div class="gamepad-hint">
+                <div class="hint-item">
+                    <div class="button-icon">D</div>
+                    <span>Navigate</span>
+                </div>
+                <div class="hint-item">
+                    <div class="button-icon">A</div>
+                    <span>Select</span>
+                </div>
+                <div class="hint-item">
+                    <div class="button-icon">B</div>
+                    <span>Back</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Popups -->
+        <div class="popup" id="confirm-popup">
+            <div class="popup-title">Confirm Action</div>
+            <div class="popup-content">
+                Are you sure you want to perform this action?
+            </div>
+            <div class="popup-buttons">
+                <button class="btn" id="cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirm-btn">Confirm</button>
+            </div>
+        </div>
+        
+        <!-- Critical Alarm Popup -->
+        <div class="popup" id="critical-alarm-popup">
+            <div class="popup-title">CRITICAL ALARM</div>
+            <div class="popup-content">
+                <p>A critical alarm has been triggered!</p>
+                <p id="critical-alarm-text">Pressure 1 has reached a dangerous level (235 PSI).</p>
+                <p>Immediate action required!</p>
+            </div>
+            <div class="popup-buttons">
+                <button class="btn" id="snooze-alarm-btn">Snooze (5s)</button>
+                <button class="btn btn-primary" id="acknowledge-alarm-btn">Acknowledge</button>
+                <button class="btn btn-danger" id="emergency-btn">Emergency Stop</button>
+            </div>
+        </div>
+        
+        <div class="overlay" id="game-intro">
+            <div class="overlay-title">AlarmAggedon</div>
+            <div class="overlay-content">
+                <p>Welcome to AlarmAggedon - the SCADA system alarm management simulator!</p>
+                <p>You are a control system operator responsible for monitoring industrial processes. Respond to alarms, adjust equipment settings, and prevent critical failures.</p>
+                <p>Use your gamepad to navigate screens, acknowledge alarms, and maintain system stability.</p>
+                <ul style="text-align: left; margin-top: 20px;">
+                    <li>D-Pad or Left Stick: Navigate controls</li>
+                    <li>A Button: Select/Interact</li>
+                    <li>B Button: Back/Cancel</li>
+                    <li>LB/RB Buttons: Switch between tabs</li>
+                </ul>
+            </div>
+            <button class="btn btn-primary" id="start-game-btn">Start Game</button>
+        </div>
+        
+        <div class="overlay" id="game-over">
+            <div class="overlay-title">Game Over</div>
+            <div class="overlay-content">
+                <p>Your shift has ended, but not without incident!</p>
+                <p id="game-over-reason">Too many critical alarms went unacknowledged, resulting in system failure.</p>
+                <p id="final-score">Final Score: 0</p>
+                <p id="final-level">Level Reached: 1</p>
+            </div>
+            <button class="btn btn-primary" id="restart-game-btn">Play Again</button>
+        </div>
+    </div>
+    
+    <div class="game-controls">
+        <p>Use D-Pad or Left Stick to navigate. A to select, B to go back. LB/RB to switch tabs.</p>
+        <button id="backBtn" class="back-btn">Back to Library</button>
+    </div>
+    
+    <script>
+    // AlarmAggedon - SCADA Navigation Game
+    (() => {
+        // DOM Elements
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const timeDisplay = document.getElementById('time');
+        const menuItems = document.querySelectorAll('.menu-item');
+        const screens = document.querySelectorAll('.screen');
+        const confirmPopup = document.getElementById('confirm-popup');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const criticalIndicator = document.getElementById('critical-indicator');
+        const criticalAlarmPopup = document.getElementById('critical-alarm-popup');
+        const criticalAlarmText = document.getElementById('critical-alarm-text');
+        const snoozeAlarmBtn = document.getElementById('snooze-alarm-btn');
+        const acknowledgeAlarmBtn = document.getElementById('acknowledge-alarm-btn');
+        const emergencyBtn = document.getElementById('emergency-btn');
+        const gameIntro = document.getElementById('game-intro');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const gameOver = document.getElementById('game-over');
+        const gameOverReason = document.getElementById('game-over-reason');
+        const finalScore = document.getElementById('final-score');
+        const finalLevel = document.getElementById('final-level');
+        const restartGameBtn = document.getElementById('restart-game-btn');
+        const fullAlarmList = document.getElementById('full-alarm-list');
+        const equipmentGrid = document.getElementById('equipment-grid');
+        const equipmentControlPanel = document.getElementById('equipment-control-panel');
+        
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../library.html';
+        });
+        
+        // Game state
+        let gameActive = false;
+        let gameTime = 0;
+        let gameInterval;
+        let score = 0;
+        let level = 1;
+        let activeScreen = 'overview';
+        let activeControl = null;
+        let navIndex = { x: 0, y: 0 };
+        let alarms = [];
+        let criticalAlarms = [];
+        let acknowledgedAlarms = 0;
+        let missedAlarms = 0;
+        let equipmentStatus = {};
+        let equipmentControls = {};
+        let popupActive = false;
+        let currentPopup = null;
+        let selectedAlarmId = null;
+        
+        // Gamepad state
+        let gamepads = {};
+        let deadzone = 0.25;
+        let buttonState = {};
+        let navTimeout = null;
+        
+        // Equipment data
+        const equipmentData = [
+            { id: 'pump1', name: 'Pump 1', status: 'ON', value: 75 },
+            { id: 'pump2', name: 'Pump 2', status: 'OFF', value: 0 },
+            { id: 'pump3', name: 'Pump 3', status: 'ON', value: 85 },
+            { id: 'temp1', name: 'Temperature 1', status: '72°F', value: 40 },
+            { id: 'temp2', name: 'Temperature 2', status: '156°F', value: 80, warning: true },
+            { id: 'pressure1', name: 'Pressure 1', status: '235 PSI', value: 95, critical: true },
+            { id: 'flow1', name: 'Flow Rate 1', status: '120 GPM', value: 60 },
+            { id: 'flow2', name: 'Flow Rate 2', status: '42 GPM', value: 30 },
+            { id: 'valve1', name: 'Valve 1', status: 'OPEN', value: 100 }
+        ];
+        
+        // Initialize the game
+        function init() {
+            // Reset game state
+            gameActive = false;
+            gameTime = 0;
+            score = 0;
+            level = 1;
+            activeScreen = 'overview';
+            activeControl = null;
+            navIndex = { x: 0, y: 0 };
+            alarms = [];
+            criticalAlarms = [];
+            acknowledgedAlarms = 0;
+            missedAlarms = 0;
+            
+            // Initialize equipment status
+            equipmentStatus = {};
+            equipmentControls = {};
+            equipmentData.forEach(equipment => {
+                equipmentStatus[equipment.id] = {
+                    name: equipment.name,
+                    status: equipment.status,
+                    value: equipment.value,
+                    warning: equipment.warning || false,
+                    critical: equipment.critical || false
+                };
+            });
+            
+            // Update UI
+            updateScore();
+            updateLevel();
+            updateClock();
+            updateAlarmList();
+            updateEquipmentStatus();
+            
+            // Show intro screen
+            gameIntro.classList.add('active');
+        }
+        
+        // Start the game
+        function startGame() {
+            gameActive = true;
+            gameTime = 0;
+            gameIntro.classList.remove('active');
+            
+            // Set up recurring events
+            gameInterval = setInterval(() => {
+                updateGameState();
+            }, 1000);
+            
+            // Generate initial alarms
+            generateAlarms();
+        }
+        
+        // Update game state every second
+        function updateGameState() {
+            gameTime++;
+            updateClock();
+            
+            // Random chance to generate a new alarm
+            if (Math.random() < 0.1 * level) {
+                generateAlarms();
+            }
+            
+            // Increase level over time
+            if (gameTime % 60 === 0) {
+                level = Math.min(10, level + 1);
+                updateLevel();
+            }
+            
+            // Check for missed alarms
+            checkCriticalAlarms();
+        }
+        
+        // Generate alarms
+        function generateAlarms() {
+            const alarmTypes = [
+                "Temperature above threshold",
+                "Pressure critically high",
+                "Flow rate below minimum",
+                "Valve failure detected",
+                "Connection timeout",
+                "Sensor malfunction",
+                "Power fluctuation",
+                "Backup system failure",
+                "Coolant level low",
+                "Motor overheating"
+            ];
+            
+            const equipment = equipmentData.map(item => item.name);
+            
+            // Generate a random alarm
+            const isCritical = Math.random() < 0.3 * level / 10;
+            const alarmId = Date.now();
+            const alarmType = alarmTypes[Math.floor(Math.random() * alarmTypes.length)];
+            const alarmEquipment = equipment[Math.floor(Math.random() * equipment.length)];
+            const alarmValue = Math.floor(Math.random() * 100) + 50;
+            
+            const alarm = {
+                id: alarmId,
+                type: alarmType,
+                equipment: alarmEquipment,
+                value: alarmValue,
+                time: formatTime(new Date()),
+                critical: isCritical,
+                acknowledged: false
+            };
+            
+            alarms.push(alarm);
+            
+            if (isCritical) {
+                criticalAlarms.push(alarm);
+                showCriticalAlarm(alarm);
+            }
+            
+            updateAlarmList();
+        }
+        
+        // Show critical alarm popup
+        function showCriticalAlarm(alarm) {
+            criticalIndicator.classList.add('critical');
+            criticalAlarmText.textContent = `${alarm.equipment}: ${alarm.type} (${alarm.value})`;
+            
+            // Show popup if no other popup is active
+            if (!popupActive) {
+                criticalAlarmPopup.classList.add('active');
+                currentPopup = criticalAlarmPopup;
+                popupActive = true;
+                selectedAlarmId = alarm.id;
+            }
+        }
+        
+        // Check for unacknowledged critical alarms
+        function checkCriticalAlarms() {
+            // Check if we have too many unacknowledged critical alarms
+            const unacknowledgedCritical = criticalAlarms.filter(alarm => !alarm.acknowledged).length;
+            
+            if (unacknowledgedCritical >= 3) {
+                endGame("Too many critical alarms went unacknowledged, resulting in system failure.");
+            }
+        }
+        
+        // Acknowledge an alarm
+        function acknowledgeAlarm(alarmId) {
+            const alarm = alarms.find(a => a.id == alarmId);
+            if (alarm) {
+                alarm.acknowledged = true;
+                acknowledgedAlarms++;
+                
+                // Update critical alarms list
+                if (alarm.critical) {
+                    if (alarm.id == selectedAlarmId && popupActive) {
+                        hidePopup();
+                    }
+                }
+                
+                // Award points for acknowledgement
+                score += alarm.critical ? 50 : 20;
+                updateScore();
+                
+                // Update UI
+                updateAlarmList();
+                
+                // Check if all critical alarms are acknowledged
+                const unacknowledgedCritical = criticalAlarms.filter(a => !a.acknowledged).length;
+                if (unacknowledgedCritical === 0) {
+                    criticalIndicator.classList.remove('critical');
+                }
+            }
+        }
+        
+        // End the game
+        function endGame(reason) {
+            gameActive = false;
+            clearInterval(gameInterval);
+            
+            // Update game over screen
+            gameOverReason.textContent = reason;
+            finalScore.textContent = `Final Score: ${score}`;
+            finalLevel.textContent = `Level Reached: ${level}`;
+            
+            // Show game over screen
+            gameOver.classList.add('active');
+        }
+        
+        // Restart the game
+        function restartGame() {
+            gameOver.classList.remove('active');
+            init();
+            startGame();
+        }
+        
+        // Update UI elements
+        function updateScore() {
+            scoreDisplay.textContent = score;
+        }
+        
+        function updateLevel() {
+            levelDisplay.textContent = level;
+        }
+        
+        function updateClock() {
+            const minutes = Math.floor(gameTime / 60).toString().padStart(2, '0');
+            const seconds = (gameTime % 60).toString().padStart(2, '0');
+            timeDisplay.textContent = `${minutes}:${seconds}`;
+        }
+        
+        // Format time for display
+        function formatTime(date) {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // Update the alarm list display
+        function updateAlarmList() {
+            // Sort alarms - critical first, then by time
+            const sortedAlarms = [...alarms].sort((a, b) => {
+                if (a.critical && !b.critical) return -1;
+                if (!a.critical && b.critical) return 1;
+                return 0;
+            });
+            
+            // Update the small alarm list on overview
+            const recentAlarmsList = document.querySelector('#overview-screen .alarm-list');
+            recentAlarmsList.innerHTML = '';
+            
+            const recentAlarms = sortedAlarms.slice(0, 5);
+            recentAlarms.forEach(alarm => {
+                const alarmItem = document.createElement('div');
+                alarmItem.className = `alarm-item ${alarm.critical ? 'critical' : 'warning'} ${alarm.acknowledged ? 'acknowledged' : ''}`;
+                alarmItem.dataset.alarmId = alarm.id;
+                
+                alarmItem.innerHTML = `
+                    <div class="alarm-text">${alarm.equipment}: ${alarm.type} (${alarm.value})</div>
+                    <div class="alarm-time">${alarm.time}</div>
+                    <div class="alarm-actions">
+                        <button class="acknowledge" ${alarm.acknowledged ? 'disabled' : ''}>Ack</button>
+                    </div>
+                `;
+                
+                recentAlarmsList.appendChild(alarmItem);
+            });
+            
+            // Update the full alarm list
+            if (fullAlarmList) {
+                fullAlarmList.innerHTML = '';
+                
+                sortedAlarms.forEach(alarm => {
+                    const alarmItem = document.createElement('div');
+                    alarmItem.className = `alarm-item ${alarm.critical ? 'critical' : 'warning'} ${alarm.acknowledged ? 'acknowledged' : ''}`;
+                    alarmItem.dataset.alarmId = alarm.id;
+                    
+                    alarmItem.innerHTML = `
+                        <div class="alarm-text">${alarm.equipment}: ${alarm.type} (${alarm.value})</div>
+                        <div class="alarm-time">${alarm.time}</div>
+                        <div class="alarm-actions">
+                            <button class="acknowledge" ${alarm.acknowledged ? 'disabled' : ''}>Ack</button>
+                        </div>
+                    `;
+                    
+                    fullAlarmList.appendChild(alarmItem);
+                });
+            }
+            
+            // Add event listeners to acknowledge buttons
+            document.querySelectorAll('.alarm-item .acknowledge').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const alarmId = e.target.closest('.alarm-item').dataset.alarmId;
+                    acknowledgeAlarm(alarmId);
+                });
+            });
+        }
+        
+        // Update equipment status display
+        function updateEquipmentStatus() {
+            if (equipmentGrid) {
+                equipmentGrid.innerHTML = '';
+                
+                Object.keys(equipmentStatus).forEach(id => {
+                    const equipment = equipmentStatus[id];
+                    
+                    const equipmentItem = document.createElement('div');
+                    equipmentItem.className = 'control-item';
+                    equipmentItem.dataset.control = id;
+                    
+                    let gaugeClass = '';
+                    if (equipment.critical) gaugeClass = 'danger';
+                    else if (equipment.warning) gaugeClass = 'warning';
+                    
+                    equipmentItem.innerHTML = `
+                        <div class="control-label">${equipment.name}</div>
+                        <div class="control-value">${equipment.status}</div>
+                        <div class="gauge-container">
+                            <div class="gauge-fill ${gaugeClass}" style="width: ${equipment.value}%"></div>
+                        </div>
+                    `;
+                    
+                    equipmentGrid.appendChild(equipmentItem);
+                });
+                
+                // Add event listeners to equipment items
+                document.querySelectorAll('#equipment-grid .control-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const controlId = e.currentTarget.dataset.control;
+                        showEquipmentControl(controlId);
+                    });
+                });
+            }
+        }
+        
+        // Show equipment control panel
+        function showEquipmentControl(controlId) {
+            const equipment = equipmentStatus[controlId];
+            
+            if (equipment) {
+                equipmentControlPanel.innerHTML = `
+                    <h3>${equipment.name} Control</h3>
+                    <div style="margin-bottom: 15px;">
+                        <div>Current Status: ${equipment.status}</div>
+                        <div>Current Value: ${equipment.value}%</div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button class="btn" data-action="decrease">Decrease</button>
+                        <button class="btn" data-action="toggle">${equipment.status === 'ON' ? 'Turn OFF' : 'Turn ON'}</button>
+                        <button class="btn" data-action="increase">Increase</button>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-danger" data-action="reset">Reset</button>
+                        <button class="btn btn-primary" data-action="auto">Auto Control</button>
+                    </div>
+                `;
+                
+                // Add event listeners to control buttons
+                equipmentControlPanel.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const action = e.currentTarget.dataset.action;
+                        controlEquipment(controlId, action);
+                    });
+                });
+            }
+        }
+        
+        // Control equipment values
+        function controlEquipment(controlId, action) {
+            const equipment = equipmentStatus[controlId];
+            
+            if (equipment) {
+                switch (action) {
+                    case 'decrease':
+                        equipment.value = Math.max(0, equipment.value - 10);
+                        if (equipment.value < 20) equipment.warning = false;
+                        if (equipment.value < 90) equipment.critical = false;
+                        break;
+                    case 'increase':
+                        equipment.value = Math.min(100, equipment.value + 10);
+                        if (equipment.value > 80) equipment.warning = true;
+                        if (equipment.value > 95) equipment.critical = true;
+                        break;
+                    case 'toggle':
+                        equipment.status = equipment.status === 'ON' ? 'OFF' : 'ON';
+                        if (equipment.status === 'OFF') {
+                            equipment.value = 0;
+                            equipment.warning = false;
+                            equipment.critical = false;
+                        }
+                        break;
+                    case 'reset':
+                        equipment.value = 50;
+                        equipment.warning = false;
+                        equipment.critical = false;
+                        break;
+                    case 'auto':
+                        equipment.value = 60;
+                        equipment.warning = false;
+                        equipment.critical = false;
+                        break;
+                }
+                
+                // Generate an alarm if critical
+                if (equipment.critical && !equipment.acknowledged) {
+                    const alarm = {
+                        id: Date.now(),
+                        type: "Critical level reached",
+                        equipment: equipment.name,
+                        value: equipment.value,
+                        time: formatTime(new Date()),
+                        critical: true,
+                        acknowledged: false
+                    };
+                    
+                    alarms.push(alarm);
+                    criticalAlarms.push(alarm);
+                    updateAlarmList();
+                    showCriticalAlarm(alarm);
+                }
+                
+                // Apply changes to control values
+                updateControls(controlId);
+                
+                // Award points for managing equipment
+                score += 5;
+                updateScore();
+                
+                // Update UI
+                showEquipmentControl(controlId);
+                updateEquipmentStatus();
+            }
+        }
+        
+        // Update control values across all screens
+        function updateControls(controlId) {
+            const equipment = equipmentStatus[controlId];
+            
+            if (equipment) {
+                const controls = document.querySelectorAll(`.control-item[data-control="${controlId}"]`);
+                
+                controls.forEach(control => {
+                    const valueElement = control.querySelector('.control-value');
+                    const gaugeElement = control.querySelector('.gauge-fill');
+                    
+                    if (valueElement) valueElement.textContent = equipment.status;
+                    
+                    if (gaugeElement) {
+                        gaugeElement.style.width = `${equipment.value}%`;
+                        gaugeElement.className = 'gauge-fill';
+                        
+                        if (equipment.critical) gaugeElement.classList.add('danger');
+                        else if (equipment.warning) gaugeElement.classList.add('warning');
+                    }
+                });
+            }
+        }
+        
+        // Switch between screens
+        function switchScreen(screenId) {
+            // Hide all screens
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Deactivate all menu items
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Activate the selected screen
+            const selectedScreen = document.getElementById(`${screenId}-screen`);
+            if (selectedScreen) {
+                selectedScreen.classList.add('active');
+            }
+            
+            // Activate the menu item
+            const selectedMenuItem = document.querySelector(`.menu-item[data-screen="${screenId}"]`);
+            if (selectedMenuItem) {
+                selectedMenuItem.classList.add('active');
+            }
+            
+            // Update active screen
+            activeScreen = screenId;
+            
+            // Reset navigation index
+            navIndex = { x: 0, y: 0 };
+            updateActiveControl();
+        }
+        
+        // Hide all popups
+        function hidePopup() {
+            if (currentPopup) {
+                currentPopup.classList.remove('active');
+                currentPopup = null;
+                popupActive = false;
+                selectedAlarmId = null;
+            }
+        }
+        
+        // Gamepad input mapping
+        const BUTTON = {
+            A: 0,
+            B: 1,
+            X: 2,
+            Y: 3,
+            LB: 4,
+            RB: 5,
+            LT: 6,
+            RT: 7,
+            SELECT: 8,
+            START: 9,
+            L3: 10,
+            R3: 11,
+            UP: 12,
+            DOWN: 13,
+            LEFT: 14,
+            RIGHT: 15,
+            GUIDE: 16
+        };
+        
+        // Initialize button state
+        Object.values(BUTTON).forEach(code => {
+            buttonState[code] = false;
+        });
+        
+        // Gamepad handling
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepads[e.gamepad.index] = e.gamepad;
+            console.log('Gamepad connected:', e.gamepad.id);
+        });
+        
+        window.addEventListener('gamepaddisconnected', (e) => {
+            delete gamepads[e.gamepad.index];
+            console.log('Gamepad disconnected');
+        });
+        
+        // Gamepad polling
+        function pollGamepads() {
+            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            for (let i = 0; i < gps.length; i++) {
+                if (gps[i]) {
+                    const gamepad = gps[i];
+                    
+                    // Process buttons
+                    for (let j = 0; j < gamepad.buttons.length; j++) {
+                        const isPressed = gamepad.buttons[j].pressed;
+                        const wasPressed = buttonState[j];
+                        
+                        // Button just pressed (transition from not pressed to pressed)
+                        if (isPressed && !wasPressed) {
+                            handleButtonPress(j);
+                        }
+                        
+                        buttonState[j] = isPressed;
+                    }
+                    
+                    // Process analog sticks if no directional input is active
+                    if (!buttonState[BUTTON.UP] && !buttonState[BUTTON.DOWN] && 
+                        !buttonState[BUTTON.LEFT] && !buttonState[BUTTON.RIGHT]) {
+                        
+                        const leftX = gamepad.axes[0];
+                        const leftY = gamepad.axes[1];
+                        
+                        if (Math.abs(leftX) > deadzone || Math.abs(leftY) > deadzone) {
+                            // Throttle analog stick input to prevent too rapid movement
+                            if (!navTimeout) {
+                                if (Math.abs(leftX) > Math.abs(leftY)) {
+                                    // Horizontal movement
+                                    if (leftX < -deadzone) handleButtonPress(BUTTON.LEFT);
+                                    else if (leftX > deadzone) handleButtonPress(BUTTON.RIGHT);
+                                } else {
+                                    // Vertical movement
+                                    if (leftY < -deadzone) handleButtonPress(BUTTON.UP);
+                                    else if (leftY > deadzone) handleButtonPress(BUTTON.DOWN);
+                                }
+                                
+                                navTimeout = setTimeout(() => {
+                                    navTimeout = null;
+                                }, 200);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            requestAnimationFrame(pollGamepads);
+        }
+        
+        // Handle button presses
+        function handleButtonPress(button) {
+            if (!gameActive && button === BUTTON.A) {
+                // Start game if intro is showing
+                if (gameIntro.classList.contains('active')) {
+                    startGame();
+                    return;
+                }
+                
+                // Restart game if game over is showing
+                if (gameOver.classList.contains('active')) {
+                    restartGame();
+                    return;
+                }
+            }
+            
+            // Don't process inputs if game is not active
+            if (!gameActive) return;
+            
+            // Handle popup interactions
+            if (popupActive) {
+                switch (button) {
+                    case BUTTON.A:
+                        // Acknowledge alarm
+                        if (currentPopup === criticalAlarmPopup && selectedAlarmId) {
+                            acknowledgeAlarm(selectedAlarmId);
+                        }
+                        break;
+                    case BUTTON.B:
+                        // Close popup without action
+                        hidePopup();
+                        break;
+                }
+                return;
+            }
+            
+            // Handle navigation
+            switch (button) {
+                case BUTTON.UP:
+                    navigateControls(0, -1);
+                    break;
+                case BUTTON.DOWN:
+                    navigateControls(0, 1);
+                    break;
+                case BUTTON.LEFT:
+                    navigateControls(-1, 0);
+                    break;
+                case BUTTON.RIGHT:
+                    navigateControls(1, 0);
+                    break;
+                case BUTTON.A:
+                    // Interact with selected control
+                    activateControl();
+                    break;
+                case BUTTON.B:
+                    // Back action
+                    handleBackAction();
+                    break;
+                case BUTTON.LB:
+                    // Previous screen
+                    navigateScreens(-1);
+                    break;
+                case BUTTON.RB:
+                    // Next screen
+                    navigateScreens(1);
+                    break;
+            }
+        }
+        
+        // Navigate between screens
+        function navigateScreens(direction) {
+            const screenOrder = ['overview', 'alarms', 'equipment', 'trends', 'settings'];
+            let currentIndex = screenOrder.indexOf(activeScreen);
+            currentIndex = (currentIndex + direction + screenOrder.length) % screenOrder.length;
+            switchScreen(screenOrder[currentIndex]);
+        }
+        
+        // Navigate controls within a screen
+        function navigateControls(dx, dy) {
+            // Get all controls in the active screen
+            const controls = getActiveScreenControls();
+            
+            if (controls.length === 0) return;
+            
+            // Calculate grid dimensions
+            const gridInfo = getControlGrid(controls);
+            
+            // Update navIndex
+            navIndex.x = (navIndex.x + dx + gridInfo.cols) % gridInfo.cols;
+            navIndex.y = (navIndex.y + dy + gridInfo.rows) % gridInfo.rows;
+            
+            // Calculate 1D index from 2D
+            const index = navIndex.y * gridInfo.cols + navIndex.x;
+            
+            // Ensure index is valid
+            if (index < controls.length) {
+                activeControl = controls[index];
+                updateActiveControl();
+            }
+        }
+        
+        // Get controls in the active screen
+        function getActiveScreenControls() {
+            // Different types of controls based on active screen
+            switch (activeScreen) {
+                case 'overview':
+                    return document.querySelectorAll('#overview-screen .control-item, #overview-screen .alarm-item');
+                case 'alarms':
+                    return document.querySelectorAll('#alarms-screen .alarm-item');
+                case 'equipment':
+                    return document.querySelectorAll('#equipment-screen .control-item, #equipment-control-panel button');
+                case 'trends':
+                    return document.querySelectorAll('#trends-screen .control-item');
+                case 'settings':
+                    return document.querySelectorAll('#settings-screen .control-item');
+                default:
+                    return [];
+            }
+        }
+        
+        // Get the grid dimensions of the controls
+        function getControlGrid(controls) {
+            // For simplicity, assuming a fixed column count per screen
+            let cols = 3;  // Default
+            
+            switch (activeScreen) {
+                case 'alarms':
+                    cols = 1;
+                    break;
+                case 'equipment':
+                    cols = 3;
+                    break;
+            }
+            
+            const rows = Math.ceil(controls.length / cols);
+            return { cols, rows };
+        }
+        
+        // Update the active control visual
+        function updateActiveControl() {
+            // Remove active class from all controls
+            const controls = getActiveScreenControls();
+            controls.forEach(control => {
+                control.classList.remove('active');
+            });
+            
+            // Add active class to the selected control
+            if (activeControl) {
+                activeControl.classList.add('active');
+                
+                // Scroll to ensure visibility
+                activeControl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        
+        // Activate the selected control
+        function activateControl() {
+            if (activeControl) {
+                if (activeControl.classList.contains('alarm-item')) {
+                    // Acknowledge alarm
+                    const alarmId = activeControl.dataset.alarmId;
+                    if (alarmId) {
+                        acknowledgeAlarm(alarmId);
+                    }
+                } else if (activeControl.classList.contains('control-item')) {
+                    // Handle control item
+                    if (activeScreen === 'equipment') {
+                        const controlId = activeControl.dataset.control;
+                        if (controlId) {
+                            showEquipmentControl(controlId);
+                            
+                            // Reset navIndex for equipment control panel
+                            navIndex = { x: 0, y: 3 };  // Position at the first button in control panel
+                            updateActiveControl();
+                        }
+                    }
+                } else if (activeControl.tagName === 'BUTTON') {
+                    // Handle button press
+                    activeControl.click();
+                }
+            }
+        }
+        
+        // Handle back action
+        function handleBackAction() {
+            // Return to main screen if on a sub-screen
+            if (activeScreen !== 'overview') {
+                switchScreen('overview');
+            }
+        }
+        
+        // Start polling for gamepad input
+        pollGamepads();
+        
+        // Event listeners
+        startGameBtn.addEventListener('click', startGame);
+        restartGameBtn.addEventListener('click', restartGame);
+        
+        // Menu navigation
+        menuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                const screenId = e.currentTarget.dataset.screen;
+                switchScreen(screenId);
+            });
+        });
+        
+        // Popup buttons
+        cancelBtn.addEventListener('click', hidePopup);
+        confirmBtn.addEventListener('click', () => {
+            // Handle confirmation
+            hidePopup();
+        });
+        
+        snoozeAlarmBtn.addEventListener('click', () => {
+            // Snooze alarm - hide popup but don't acknowledge
+            hidePopup();
+        });
+        
+        acknowledgeAlarmBtn.addEventListener('click', () => {
+            // Acknowledge the alarm
+            if (selectedAlarmId) {
+                acknowledgeAlarm(selectedAlarmId);
+            }
+        });
+        
+        emergencyBtn.addEventListener('click', () => {
+            // Emergency stop - reset all equipment
+            Object.keys(equipmentStatus).forEach(id => {
+                equipmentStatus[id].status = 'OFF';
+                equipmentStatus[id].value = 0;
+                equipmentStatus[id].warning = false;
+                equipmentStatus[id].critical = false;
+            });
+            
+            // Acknowledge all alarms
+            alarms.forEach(alarm => {
+                alarm.acknowledged = true;
+            });
+            
+            criticalAlarms = [];
+            criticalIndicator.classList.remove('critical');
+            
+            updateAlarmList();
+            updateEquipmentStatus();
+            
+            hidePopup();
+            
+            // Award points for emergency action, but not too many
+            score += 100;
+            updateScore();
+        });
+        
+        // Initialize the game
+        init();
+    })();
+    </script>
+</body>
+</html>

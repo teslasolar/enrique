@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter - Gamepad Enabled</title>
+    <style>
+        body {
+            margin: 0;
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        canvas {
+            border: 2px solid #107C10;
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.5);
+        }
+        .controls {
+            margin-top: 20px;
+            color: #AAA;
+            font-size: 14px;
+            text-align: center;
+        }
+        .score {
+            font-size: 24px;
+            color: #107C10;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            width: 644px;
+        }
+        .btn {
+            background: #107C10;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background: #0c5e0c;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">
+        <div>Score: <span id="score">0</span></div>
+        <div>Lives: <span id="lives">3</span></div>
+    </div>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <div class="controls">
+        <p>Use D-Pad or Left Stick to move. Press A to shoot.</p>
+        <button id="backBtn" class="btn">Back to Library</button>
+    </div>
+
+    <script>
+    // Super-compressed Space Shooter game with gamepad support
+    (()=>{
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const scoreDisplay = document.getElementById('score');
+        const livesDisplay = document.getElementById('lives');
+        
+        // Game state variables
+        let player, bullets, enemies, stars, score, lives, gameState;
+        let gamepads = {};
+        let deadzone = 0.25;
+        let lastShootTime = 0;
+        let shootDelay = 250; // ms between shots
+        let enemySpawnRate = 1500; // ms between enemy spawns
+        let lastEnemySpawn = 0;
+        let gameLoop;
+        let animationFrameId;
+        
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../library.html';
+        });
+        
+        // Game states
+        const STATE = {
+            PLAYING: 0,
+            GAME_OVER: 1
+        };
+        
+        // Initialize game
+        function init() {
+            // Reset game state
+            score = 0;
+            lives = 3;
+            gameState = STATE.PLAYING;
+            scoreDisplay.textContent = score;
+            livesDisplay.textContent = lives;
+            lastShootTime = 0;
+            lastEnemySpawn = 0;
+            
+            // Create player ship
+            player = {
+                x: width / 2,
+                y: height - 50,
+                width: 40,
+                height: 40,
+                speed: 6,
+                color: '#107C10'
+            };
+            
+            // Initialize arrays
+            bullets = [];
+            enemies = [];
+            stars = [];
+            
+            // Create initial stars
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 2 + 1,
+                    speed: Math.random() * 2 + 1
+                });
+            }
+            
+            // Clear any existing game loop
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            
+            // Start game loop
+            lastFrameTime = Date.now();
+            animationFrameId = requestAnimationFrame(gameLoop = update);
+        }
+        
+        // Create a new enemy
+        function spawnEnemy() {
+            const size = Math.random() * 20 + 20;
+            const enemy = {
+                x: Math.random() * (width - size),
+                y: -size,
+                width: size,
+                height: size,
+                speed: Math.random() * 2 + 1,
+                color: `hsl(${Math.random() * 360}, 80%, 50%)`
+            };
+            enemies.push(enemy);
+        }
+        
+        // Shoot a bullet from the player's position
+        function shootBullet() {
+            const now = Date.now();
+            if (now - lastShootTime > shootDelay) {
+                bullets.push({
+                    x: player.x + player.width / 2 - 2.5,
+                    y: player.y,
+                    width: 5,
+                    height: 15,
+                    speed: 8,
+                    color: '#00ff00'
+                });
+                lastShootTime = now;
+            }
+        }
+        
+        // Check for collisions between two rectangular objects
+        function checkCollision(obj1, obj2) {
+            return (
+                obj1.x < obj2.x + obj2.width &&
+                obj1.x + obj1.width > obj2.x &&
+                obj1.y < obj2.y + obj2.height &&
+                obj1.y + obj1.height > obj2.y
+            );
+        }
+        
+        // Game update loop
+        function update() {
+            const now = Date.now();
+            
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Update and draw stars (background)
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > height) {
+                    star.y = 0;
+                    star.x = Math.random() * width;
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+            });
+            
+            if (gameState === STATE.PLAYING) {
+                // Draw player
+                ctx.fillStyle = player.color;
+                
+                // Draw a simple spaceship shape
+                ctx.beginPath();
+                ctx.moveTo(player.x + player.width / 2, player.y);
+                ctx.lineTo(player.x + player.width, player.y + player.height);
+                ctx.lineTo(player.x, player.y + player.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Engine flames
+                ctx.fillStyle = '#ff6600';
+                ctx.beginPath();
+                ctx.moveTo(player.x + player.width / 2 - 10, player.y + player.height);
+                ctx.lineTo(player.x + player.width / 2, player.y + player.height + 10 + Math.random() * 5);
+                ctx.lineTo(player.x + player.width / 2 + 10, player.y + player.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Update and draw bullets
+                for (let i = bullets.length - 1; i >= 0; i--) {
+                    const bullet = bullets[i];
+                    bullet.y -= bullet.speed;
+                    
+                    // Remove bullets that have gone off-screen
+                    if (bullet.y + bullet.height < 0) {
+                        bullets.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Draw bullet
+                    ctx.fillStyle = bullet.color;
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    
+                    // Check for collision with enemies
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        if (checkCollision(bullet, enemies[j])) {
+                            // Remove bullet and enemy
+                            bullets.splice(i, 1);
+                            enemies.splice(j, 1);
+                            
+                            // Increase score
+                            score += 10;
+                            scoreDisplay.textContent = score;
+                            
+                            // Break to avoid checking this bullet against other enemies
+                            break;
+                        }
+                    }
+                }
+                
+                // Spawn enemies
+                if (now - lastEnemySpawn > enemySpawnRate) {
+                    spawnEnemy();
+                    lastEnemySpawn = now;
+                    
+                    // Gradually increase spawn rate
+                    enemySpawnRate = Math.max(500, enemySpawnRate - 10);
+                }
+                
+                // Update and draw enemies
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    const enemy = enemies[i];
+                    enemy.y += enemy.speed;
+                    
+                    // Remove enemies that have gone off-screen
+                    if (enemy.y > height) {
+                        enemies.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Draw enemy
+                    ctx.fillStyle = enemy.color;
+                    
+                    // Draw an alien shape
+                    ctx.beginPath();
+                    ctx.arc(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Eyes
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x + enemy.width / 3, enemy.y + enemy.height / 3, enemy.width / 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(enemy.x + enemy.width * 2/3, enemy.y + enemy.height / 3, enemy.width / 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Mouth
+                    ctx.beginPath();
+                    ctx.arc(enemy.x + enemy.width / 2, enemy.y + enemy.height * 2/3, enemy.width / 5, 0, Math.PI);
+                    ctx.stroke();
+                    
+                    // Check for collision with player
+                    if (checkCollision(player, enemy)) {
+                        // Remove enemy
+                        enemies.splice(i, 1);
+                        
+                        // Decrease lives
+                        lives--;
+                        livesDisplay.textContent = lives;
+                        
+                        // Check if game over
+                        if (lives <= 0) {
+                            gameState = STATE.GAME_OVER;
+                            drawGameOver();
+                        }
+                    }
+                }
+            } else if (gameState === STATE.GAME_OVER) {
+                // Game over state
+                drawGameOver();
+            }
+            
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Draw game over screen
+        function drawGameOver() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#ff4040';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', width/2, height/2 - 30);
+            
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(`Final Score: ${score}`, width/2, height/2 + 20);
+            
+            ctx.font = '18px Arial';
+            ctx.fillText('Press A to Play Again', width/2, height/2 + 60);
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (gameState === STATE.PLAYING) {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        player.x = Math.max(0, player.x - player.speed);
+                        break;
+                    case 'ArrowRight':
+                        player.x = Math.min(width - player.width, player.x + player.speed);
+                        break;
+                    case 'ArrowUp':
+                        player.y = Math.max(0, player.y - player.speed);
+                        break;
+                    case 'ArrowDown':
+                        player.y = Math.min(height - player.height, player.y + player.speed);
+                        break;
+                    case ' ': // Space to shoot
+                        shootBullet();
+                        break;
+                }
+            } else if (gameState === STATE.GAME_OVER && e.key === ' ') {
+                init();
+            }
+        });
+        
+        // Gamepad handling
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepads[e.gamepad.index] = e.gamepad;
+            console.log('Gamepad connected:', e.gamepad.id);
+        });
+        
+        window.addEventListener('gamepaddisconnected', (e) => {
+            delete gamepads[e.gamepad.index];
+            console.log('Gamepad disconnected');
+        });
+        
+        // Gamepad polling
+        function pollGamepads() {
+            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            for (let i = 0; i < gps.length; i++) {
+                if (gps[i]) {
+                    const gp = gps[i];
+                    
+                    if (gameState === STATE.PLAYING) {
+                        // D-pad movement
+                        if (gp.buttons[14] && gp.buttons[14].pressed) {
+                            player.x = Math.max(0, player.x - player.speed);
+                        }
+                        if (gp.buttons[15] && gp.buttons[15].pressed) {
+                            player.x = Math.min(width - player.width, player.x + player.speed);
+                        }
+                        if (gp.buttons[12] && gp.buttons[12].pressed) {
+                            player.y = Math.max(0, player.y - player.speed);
+                        }
+                        if (gp.buttons[13] && gp.buttons[13].pressed) {
+                            player.y = Math.min(height - player.height, player.y + player.speed);
+                        }
+                        
+                        // Analog stick movement
+                        const leftX = gp.axes[0];
+                        const leftY = gp.axes[1];
+                        
+                        if (Math.abs(leftX) > deadzone) {
+                            player.x += leftX * player.speed;
+                            player.x = Math.max(0, Math.min(width - player.width, player.x));
+                        }
+                        
+                        if (Math.abs(leftY) > deadzone) {
+                            player.y += leftY * player.speed;
+                            player.y = Math.max(0, Math.min(height - player.height, player.y));
+                        }
+                        
+                        // A button to shoot
+                        if (gp.buttons[0] && gp.buttons[0].pressed) {
+                            shootBullet();
+                        }
+                    } else if (gameState === STATE.GAME_OVER) {
+                        // A button to restart
+                        if (gp.buttons[0] && gp.buttons[0].pressed) {
+                            // Debounce button press
+                            if (!gp.buttons[0].wasPressed) {
+                                gp.buttons[0].wasPressed = true;
+                                init();
+                            }
+                        } else {
+                            // Reset button state
+                            if (gp.buttons[0]) {
+                                gp.buttons[0].wasPressed = false;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            requestAnimationFrame(pollGamepads);
+        }
+        
+        // Start polling for gamepad input
+        pollGamepads();
+        
+        // Initialize game
+        init();
+    })();
+    </script>
+</body>
+</html>

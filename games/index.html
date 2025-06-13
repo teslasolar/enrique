@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Collection - Enrique Martinez Vargas</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../picture/face.png">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(45deg, #00ff88, #0088ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .back-link {
+            color: #00ff88;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #00ff88;
+            color: #000;
+            transform: translateX(-5px);
+        }
+        
+        /* Game Grid */
+        .games-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .game-thumbnail {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-thumbnail::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(0, 255, 136, 0.1),
+                transparent
+            );
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .game-info {
+            padding: 1.5rem;
+        }
+        
+        .game-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            text-transform: capitalize;
+        }
+        
+        .game-description {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .control-badge i {
+            color: #00ff88;
+        }
+        
+        .play-button {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .play-button:hover {
+            background: #00ff88;
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Game Modal */
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .game-modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.5rem;
+            text-transform: capitalize;
+        }
+        
+        .close-button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .close-button:hover {
+            color: #ff4444;
+            transform: rotate(90deg);
+        }
+        
+        .game-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            border-radius: 0 0 15px 15px;
+        }
+        
+        /* No Games Message */
+        .no-games {
+            text-align: center;
+            padding: 4rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .no-games i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .game-card {
+                margin: 0 -1rem;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+            
+            .modal-content {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-gamepad"></i>
+                Game Collection
+            </h1>
+            <a href="../components/index.html#home" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Portfolio
+            </a>
+        </div>
+    </header>
+
+    <!-- Games Container -->
+    <div class="games-container">
+        <div id="games-grid" class="games-grid">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Discovering games...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Modal -->
+    <div id="game-modal" class="game-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Game Title</h2>
+                <button class="close-button" onclick="closeGame()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <iframe id="game-iframe" class="game-iframe" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Game data with icons and descriptions
+        const gameMetadata = {
+            'snake': {
+                icon: '🐍',
+                description: 'Classic snake game with modern graphics',
+                controls: ['keyboard', 'gamepad']
+            },
+            'tetris': {
+                icon: '🧱',
+                description: 'The timeless puzzle game',
+                controls: ['keyboard', 'gamepad']
+            },
+            'pong': {
+                icon: '🏓',
+                description: 'The original arcade classic',
+                controls: ['keyboard', 'gamepad']
+            },
+            'asteroids': {
+                icon: '🚀',
+                description: 'Destroy asteroids in space',
+                controls: ['keyboard', 'gamepad']
+            },
+            'breakout': {
+                icon: '🧱',
+                description: 'Break all the bricks!',
+                controls: ['keyboard', 'gamepad']
+            },
+            'pacman': {
+                icon: '👻',
+                description: 'Eat dots, avoid ghosts',
+                controls: ['keyboard', 'gamepad']
+            },
+            'space-invaders': {
+                icon: '👾',
+                description: 'Defend Earth from alien invasion',
+                controls: ['keyboard', 'gamepad']
+            },
+            'flappy-bird': {
+                icon: '🐦',
+                description: 'Fly through the pipes',
+                controls: ['keyboard', 'touch']
+            },
+            '2048': {
+                icon: '🔢',
+                description: 'Combine tiles to reach 2048',
+                controls: ['keyboard', 'touch']
+            },
+            'memory': {
+                icon: '🧠',
+                description: 'Test your memory skills',
+                controls: ['mouse', 'touch']
+            }
+        };
+
+        // Simulated game discovery (in real implementation, this would scan directories)
+        const games = [
+            'snake',
+            'tetris',
+            'pong',
+            'asteroids',
+            'breakout'
+        ];
+
+        // Initialize
+        function init() {
+            discoverGames();
+        }
+
+        // Discover games (simulated)
+        async function discoverGames() {
+            const gamesGrid = document.getElementById('games-grid');
+            
+            // Simulate loading delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            if (games.length === 0) {
+                gamesGrid.innerHTML = `
+                    <div class="no-games">
+                        <i class="fas fa-folder-open"></i>
+                        <h2>No Games Found</h2>
+                        <p>Add game folders with index.html files to see them here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Clear loading message
+            gamesGrid.innerHTML = '';
+            
+            // Create game cards
+            games.forEach(game => {
+                const metadata = gameMetadata[game] || {
+                    icon: '🎮',
+                    description: 'A fun game to play',
+                    controls: ['keyboard']
+                };
+                
+                const gameCard = createGameCard(game, metadata);
+                gamesGrid.appendChild(gameCard);
+            });
+        }
+
+        // Create game card element
+        function createGameCard(gameName, metadata) {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.onclick = () => openGame(gameName);
+            
+            card.innerHTML = `
+                <div class="game-thumbnail">
+                    ${metadata.icon}
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">${gameName.replace(/-/g, ' ')}</h3>
+                    <p class="game-description">${metadata.description}</p>
+                    <div class="game-controls">
+                        ${metadata.controls.map(control => `
+                            <span class="control-badge">
+                                <i class="fas fa-${getControlIcon(control)}"></i>
+                                ${control}
+                            </span>
+                        `).join('')}
+                    </div>
+                    <button class="play-button">
+                        <i class="fas fa-play"></i>
+                        Play
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Get icon for control type
+        function getControlIcon(control) {
+            const icons = {
+                'keyboard': 'keyboard',
+                'gamepad': 'gamepad',
+                'mouse': 'mouse',
+                'touch': 'hand-pointer'
+            };
+            return icons[control] || 'gamepad';
+        }
+
+        // Open game in modal
+        function openGame(gameName) {
+            const modal = document.getElementById('game-modal');
+            const iframe = document.getElementById('game-iframe');
+            const title = document.getElementById('modal-title');
+            
+            title.textContent = gameName.replace(/-/g, ' ');
+            iframe.src = `./${gameName}/index.html`;
+            modal.classList.add('active');
+            
+            // Focus on iframe for keyboard controls
+            setTimeout(() => iframe.focus(), 100);
+            
+            // Add ESC key listener
+            document.addEventListener('keydown', handleEscKey);
+        }
+
+        // Close game modal
+        function closeGame() {
+            const modal = document.getElementById('game-modal');
+            const iframe = document.getElementById('game-iframe');
+            
+            modal.classList.remove('active');
+            iframe.src = '';
+            
+            // Remove ESC key listener
+            document.removeEventListener('keydown', handleEscKey);
+        }
+
+        // Handle ESC key
+        function handleEscKey(e) {
+            if (e.key === 'Escape') {
+                closeGame();
+            }
+        }
+
+        // Gamepad API support message
+        function checkGamepadSupport() {
+            if ('getGamepads' in navigator) {
+                console.log('🎮 Gamepad API supported! Connect a controller to play.');
+                
+                window.addEventListener('gamepadconnected', (e) => {
+                    console.log(`Gamepad connected: ${e.gamepad.id}`);
+                    showNotification('🎮 Controller Connected!', 'success');
+                });
+                
+                window.addEventListener('gamepaddisconnected', (e) => {
+                    console.log(`Gamepad disconnected: ${e.gamepad.id}`);
+                    showNotification('🎮 Controller Disconnected', 'warning');
+                });
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                background: ${type === 'success' ? '#00ff88' : '#ff8800'};
+                color: #000;
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); }
+                to { transform: translateX(100%); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            checkGamepadSupport();
+        });
+    </script>
+</body>
+</html>

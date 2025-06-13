@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Runner - Gamepad Enabled</title>
+    <style>
+        body {
+            margin: 0;
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        canvas {
+            border: 2px solid #107C10;
+            box-shadow: 0 0 20px rgba(16, 124, 16, 0.5);
+        }
+        .controls {
+            margin-top: 20px;
+            color: #AAA;
+            font-size: 14px;
+            text-align: center;
+        }
+        .score {
+            font-size: 24px;
+            color: #107C10;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            width: 644px;
+        }
+        .btn {
+            background: #107C10;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background: #0c5e0c;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">
+        <div>Level: <span id="level">1</span></div>
+        <div>Time: <span id="time">00:00</span></div>
+        <div>Collected: <span id="collected">0</span>/<span id="total">0</span></div>
+    </div>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <div class="controls">
+        <p>Use D-Pad or Left Stick to navigate the maze. Collect all items to advance to the next level.</p>
+        <button id="backBtn" class="btn">Back to Library</button>
+    </div>
+
+    <script>
+    // Super-compressed Maze Runner game with gamepad support
+    (()=>{
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const levelDisplay = document.getElementById('level');
+        const timeDisplay = document.getElementById('time');
+        const collectedDisplay = document.getElementById('collected');
+        const totalDisplay = document.getElementById('total');
+        
+        // Game state variables
+        let player, maze, items, level, time, collected;
+        let gameActive = false;
+        let gameInterval;
+        let gamepads = {};
+        let deadzone = 0.25;
+        let frameId;
+        
+        // Tile size and maze dimensions
+        const tileSize = 40;
+        let mazeWidth, mazeHeight;
+        
+        // Direction constants
+        const DIRECTIONS = {
+            UP: { x: 0, y: -1 },
+            RIGHT: { x: 1, y: 0 },
+            DOWN: { x: 0, y: 1 },
+            LEFT: { x: -1, y: 0 }
+        };
+        
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '../library.html';
+        });
+        
+        // Initialize game
+        function init() {
+            level = 1;
+            time = 0;
+            collected = 0;
+            
+            // Create maze for level 1
+            generateMaze();
+            
+            // Create player
+            player = {
+                x: 1,
+                y: 1,
+                color: '#107C10',
+                speed: 5,
+                targetX: tileSize + tileSize / 2,
+                targetY: tileSize + tileSize / 2,
+                moving: false,
+                direction: null
+            };
+            
+            // Place items to collect
+            placeItems();
+            
+            // Update UI
+            updateUI();
+            
+            // Start game loop
+            startGame();
+        }
+        
+        // Start game
+        function startGame() {
+            gameActive = true;
+            
+            // Start time tracking
+            gameInterval = setInterval(() => {
+                time++;
+                updateUI();
+            }, 1000);
+            
+            // Start animation loop
+            if (frameId) cancelAnimationFrame(frameId);
+            frameId = requestAnimationFrame(update);
+        }
+        
+        // Generate maze based on level
+        function generateMaze() {
+            // Adjust maze size based on level
+            mazeWidth = 10 + Math.min(5, level);
+            mazeHeight = 8 + Math.min(4, level);
+            
+            // Initialize maze with walls
+            maze = Array(mazeHeight).fill().map(() => Array(mazeWidth).fill(1));
+            
+            // Create passages using depth-first search
+            const stack = [];
+            const visited = Array(mazeHeight).fill().map(() => Array(mazeWidth).fill(false));
+            
+            // Start at (1,1)
+            let x = 1;
+            let y = 1;
+            visited[y][x] = true;
+            maze[y][x] = 0; // Open path
+            stack.push({ x, y });
+            
+            // Generate paths
+            while (stack.length > 0) {
+                const current = stack[stack.length - 1];
+                const { x, y } = current;
+                
+                // Find unvisited neighbors
+                const neighbors = [];
+                
+                if (y > 2 && !visited[y-2][x]) neighbors.push({ x, y: y-2, dir: { x: 0, y: -1 } });
+                if (y < mazeHeight-3 && !visited[y+2][x]) neighbors.push({ x, y: y+2, dir: { x: 0, y: 1 } });
+                if (x > 2 && !visited[y][x-2]) neighbors.push({ x: x-2, y, dir: { x: -1, y: 0 } });
+                if (x < mazeWidth-3 && !visited[y][x+2]) neighbors.push({ x: x+2, y, dir: { x: 1, y: 0 } });
+                
+                if (neighbors.length > 0) {
+                    // Choose random neighbor
+                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    
+                    // Remove wall between current and next
+                    maze[y + next.dir.y][x + next.dir.x] = 0;
+                    
+                    // Mark next as visited and push to stack
+                    visited[next.y][next.x] = true;
+                    maze[next.y][next.x] = 0;
+                    stack.push(next);
+                } else {
+                    // Backtrack
+                    stack.pop();
+                }
+            }
+            
+            // Ensure exit is open
+            maze[mazeHeight-2][mazeWidth-2] = 0;
+            
+            // Add some random open paths for higher levels
+            if (level > 1) {
+                const extraPaths = level * 2;
+                for (let i = 0; i < extraPaths; i++) {
+                    const randX = Math.floor(Math.random() * (mazeWidth - 2)) + 1;
+                    const randY = Math.floor(Math.random() * (mazeHeight - 2)) + 1;
+                    maze[randY][randX] = 0;
+                }
+            }
+        }
+        
+        // Place collectible items
+        function placeItems() {
+            items = [];
+            const itemCount = 5 + level;
+            
+            // Find open spaces
+            const openSpaces = [];
+            for (let y = 1; y < mazeHeight - 1; y++) {
+                for (let x = 1; x < mazeWidth - 1; x++) {
+                    if (maze[y][x] === 0 && !(x === 1 && y === 1) && !(x === mazeWidth-2 && y === mazeHeight-2)) {
+                        openSpaces.push({ x, y });
+                    }
+                }
+            }
+            
+            // Shuffle open spaces
+            for (let i = openSpaces.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [openSpaces[i], openSpaces[j]] = [openSpaces[j], openSpaces[i]];
+            }
+            
+            // Place items
+            for (let i = 0; i < Math.min(itemCount, openSpaces.length); i++) {
+                items.push({
+                    x: openSpaces[i].x,
+                    y: openSpaces[i].y,
+                    collected: false,
+                    color: `hsl(${Math.random() * 360}, 80%, 60%)`
+                });
+            }
+            
+            // Update total items display
+            totalDisplay.textContent = items.length;
+            collectedDisplay.textContent = '0';
+            collected = 0;
+        }
+        
+        // Update game state and render
+        function update() {
+            if (!gameActive) return;
+            
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Calculate offset to center maze
+            const offsetX = (width - mazeWidth * tileSize) / 2;
+            const offsetY = (height - mazeHeight * tileSize) / 2;
+            
+            // Draw maze
+            for (let y = 0; y < mazeHeight; y++) {
+                for (let x = 0; x < mazeWidth; x++) {
+                    if (maze[y][x] === 1) {
+                        // Wall
+                        ctx.fillStyle = '#333';
+                        ctx.fillRect(offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize);
+                        
+                        // Wall highlight
+                        ctx.fillStyle = '#444';
+                        ctx.fillRect(offsetX + x * tileSize, offsetY + y * tileSize, tileSize, 5);
+                        ctx.fillRect(offsetX + x * tileSize, offsetY + y * tileSize, 5, tileSize);
+                    } else {
+                        // Path
+                        ctx.fillStyle = '#111';
+                        ctx.fillRect(offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize);
+                    }
+                }
+            }
+            
+            // Draw exit
+            ctx.fillStyle = '#107C10';
+            ctx.fillRect(
+                offsetX + (mazeWidth - 2) * tileSize + 5, 
+                offsetY + (mazeHeight - 2) * tileSize + 5, 
+                tileSize - 10, 
+                tileSize - 10
+            );
+            
+            // Draw items
+            items.forEach(item => {
+                if (!item.collected) {
+                    ctx.fillStyle = item.color;
+                    ctx.beginPath();
+                    ctx.arc(
+                        offsetX + item.x * tileSize + tileSize / 2,
+                        offsetY + item.y * tileSize + tileSize / 2,
+                        tileSize / 4,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                    
+                    // Glowing effect
+                    ctx.shadowColor = item.color;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(
+                        offsetX + item.x * tileSize + tileSize / 2,
+                        offsetY + item.y * tileSize + tileSize / 2,
+                        tileSize / 5,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+            
+            // Update player movement
+            if (player.moving) {
+                // Calculate current grid position
+                const gridX = Math.floor((player.targetX - offsetX) / tileSize);
+                const gridY = Math.floor((player.targetY - offsetY) / tileSize);
+                
+                // Move towards target
+                const dx = player.targetX - (offsetX + player.x * tileSize + tileSize / 2);
+                const dy = player.targetY - (offsetY + player.y * tileSize + tileSize / 2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < player.speed) {
+                    // Arrived at target
+                    player.x = gridX;
+                    player.y = gridY;
+                    player.moving = false;
+                    
+                    // Check if at exit
+                    if (player.x === mazeWidth - 2 && player.y === mazeHeight - 2 && collected === items.length) {
+                        nextLevel();
+                        return;
+                    }
+                    
+                    // Check for item collection
+                    items.forEach(item => {
+                        if (!item.collected && player.x === item.x && player.y === item.y) {
+                            item.collected = true;
+                            collected++;
+                            collectedDisplay.textContent = collected;
+                        }
+                    });
+                } else {
+                    // Move towards target
+                    const nx = offsetX + player.x * tileSize + tileSize / 2 + (dx / distance) * player.speed;
+                    const ny = offsetY + player.y * tileSize + tileSize / 2 + (dy / distance) * player.speed;
+                    
+                    player.x = (nx - offsetX) / tileSize - 0.5;
+                    player.y = (ny - offsetY) / tileSize - 0.5;
+                }
+            }
+            
+            // Draw player
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(
+                offsetX + player.x * tileSize + tileSize / 2,
+                offsetY + player.y * tileSize + tileSize / 2,
+                tileSize / 3,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Draw player eyes based on direction
+            ctx.fillStyle = '#fff';
+            let eyeOffsetX = 0;
+            let eyeOffsetY = 0;
+            
+            if (player.direction === 'UP') eyeOffsetY = -5;
+            else if (player.direction === 'DOWN') eyeOffsetY = 5;
+            else if (player.direction === 'LEFT') eyeOffsetX = -5;
+            else if (player.direction === 'RIGHT') eyeOffsetX = 5;
+            
+            // Left eye
+            ctx.beginPath();
+            ctx.arc(
+                offsetX + player.x * tileSize + tileSize / 2 - 5 + eyeOffsetX,
+                offsetY + player.y * tileSize + tileSize / 2 - 2 + eyeOffsetY,
+                3,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Right eye
+            ctx.beginPath();
+            ctx.arc(
+                offsetX + player.x * tileSize + tileSize / 2 + 5 + eyeOffsetX,
+                offsetY + player.y * tileSize + tileSize / 2 - 2 + eyeOffsetY,
+                3,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Continue animation loop
+            frameId = requestAnimationFrame(update);
+        }
+        
+        // Handle player movement
+        function movePlayer(direction) {
+            if (player.moving) return;
+            
+            // Get target grid position
+            const nextX = player.x + direction.x;
+            const nextY = player.y + direction.y;
+            
+            // Check if valid move
+            if (nextX >= 0 && nextX < mazeWidth && nextY >= 0 && nextY < mazeHeight && maze[nextY][nextX] === 0) {
+                player.moving = true;
+                
+                // Calculate target pixel position
+                const offsetX = (width - mazeWidth * tileSize) / 2;
+                const offsetY = (height - mazeHeight * tileSize) / 2;
+                player.targetX = offsetX + nextX * tileSize + tileSize / 2;
+                player.targetY = offsetY + nextY * tileSize + tileSize / 2;
+                
+                // Set facing direction
+                if (direction === DIRECTIONS.UP) player.direction = 'UP';
+                else if (direction === DIRECTIONS.DOWN) player.direction = 'DOWN';
+                else if (direction === DIRECTIONS.LEFT) player.direction = 'LEFT';
+                else if (direction === DIRECTIONS.RIGHT) player.direction = 'RIGHT';
+            }
+        }
+        
+        // Advance to next level
+        function nextLevel() {
+            level++;
+            levelDisplay.textContent = level;
+            
+            // Generate new maze
+            generateMaze();
+            
+            // Reset player position
+            player.x = 1;
+            player.y = 1;
+            player.moving = false;
+            player.targetX = 0;
+            player.targetY = 0;
+            
+            // Place new items
+            placeItems();
+        }
+        
+        // Update UI
+        function updateUI() {
+            levelDisplay.textContent = level;
+            
+            // Format time
+            const minutes = Math.floor(time / 60).toString().padStart(2, '0');
+            const seconds = (time % 60).toString().padStart(2, '0');
+            timeDisplay.textContent = `${minutes}:${seconds}`;
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    movePlayer(DIRECTIONS.UP);
+                    break;
+                case 'ArrowDown':
+                    movePlayer(DIRECTIONS.DOWN);
+                    break;
+                case 'ArrowLeft':
+                    movePlayer(DIRECTIONS.LEFT);
+                    break;
+                case 'ArrowRight':
+                    movePlayer(DIRECTIONS.RIGHT);
+                    break;
+            }
+        });
+        
+        // Gamepad handling
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepads[e.gamepad.index] = e.gamepad;
+            console.log('Gamepad connected:', e.gamepad.id);
+        });
+        
+        window.addEventListener('gamepaddisconnected', (e) => {
+            delete gamepads[e.gamepad.index];
+            console.log('Gamepad disconnected');
+        });
+        
+        // Gamepad state tracking
+        let lastButtonState = {
+            12: false, // Up
+            13: false, // Down
+            14: false, // Left
+            15: false  // Right
+        };
+        
+        // Gamepad polling
+        function pollGamepads() {
+            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            for (let i = 0; i < gps.length; i++) {
+                if (gps[i]) {
+                    const gp = gps[i];
+                    
+                    // Handle D-pad
+                    if (gp.buttons[12] && gp.buttons[12].pressed && !lastButtonState[12]) {
+                        movePlayer(DIRECTIONS.UP);
+                    }
+                    if (gp.buttons[13] && gp.buttons[13].pressed && !lastButtonState[13]) {
+                        movePlayer(DIRECTIONS.DOWN);
+                    }
+                    if (gp.buttons[14] && gp.buttons[14].pressed && !lastButtonState[14]) {
+                        movePlayer(DIRECTIONS.LEFT);
+                    }
+                    if (gp.buttons[15] && gp.buttons[15].pressed && !lastButtonState[15]) {
+                        movePlayer(DIRECTIONS.RIGHT);
+                    }
+                    
+                    // Update button states
+                    lastButtonState[12] = gp.buttons[12] && gp.buttons[12].pressed;
+                    lastButtonState[13] = gp.buttons[13] && gp.buttons[13].pressed;
+                    lastButtonState[14] = gp.buttons[14] && gp.buttons[14].pressed;
+                    lastButtonState[15] = gp.buttons[15] && gp.buttons[15].pressed;
+                    
+                    // Handle analog stick
+                    const leftX = gp.axes[0];
+                    const leftY = gp.axes[1];
+                    
+                    if (Math.abs(leftX) > deadzone || Math.abs(leftY) > deadzone) {
+                        if (!player.moving) {
+                            if (Math.abs(leftX) > Math.abs(leftY)) {
+                                // Horizontal movement
+                                if (leftX < -deadzone) movePlayer(DIRECTIONS.LEFT);
+                                else if (leftX > deadzone) movePlayer(DIRECTIONS.RIGHT);
+                            } else {
+                                // Vertical movement
+                                if (leftY < -deadzone) movePlayer(DIRECTIONS.UP);
+                                else if (leftY > deadzone) movePlayer(DIRECTIONS.DOWN);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            requestAnimationFrame(pollGamepads);
+        }
+        
+        // Start polling for gamepad input
+        pollGamepads();
+        
+        // Initialize game
+        init();
+    })();
+    </script>
+</body>
+</html>
