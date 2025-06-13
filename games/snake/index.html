@@ -3,307 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game - Gamepad Enabled</title>
+    <title>Snake Game</title>
     <style>
-        body {
+        * {
             margin: 0;
-            background: #121212;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #111;
             color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
+            font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
         }
-        canvas {
-            border: 2px solid #107C10;
-            box-shadow: 0 0 20px rgba(16, 124, 16, 0.5);
-        }
-        .controls {
-            margin-top: 20px;
-            color: #AAA;
-            font-size: 14px;
+        
+        .game-container {
             text-align: center;
+            padding: 20px;
         }
+        
+        canvas {
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            background: #000;
+        }
+        
         .score {
             font-size: 24px;
-            color: #107C10;
             margin-bottom: 20px;
+            color: #00ff88;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ff4444;
+            display: none;
+        }
+        
+        .game-over.active {
+            display: block;
+        }
+        
+        .game-over h2 {
+            color: #ff4444;
+            margin-bottom: 20px;
+        }
+        
+        .restart-btn {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 10px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
             font-weight: bold;
         }
-        .btn {
-            background: #107C10;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-family: inherit;
+        
+        .restart-btn:hover {
+            background: #00dd77;
         }
-        .btn:hover {
-            background: #0c5e0c;
+        
+        .gamepad-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .gamepad-indicator.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="score">Score: <span id="score">0</span></div>
-    <canvas id="gameCanvas" width="640" height="480"></canvas>
-    <div class="controls">
-        <p>Use D-Pad or Left Stick to control the snake. Press A to restart after game over.</p>
-        <button id="backBtn" class="btn">Back to Library</button>
+    <div class="game-container">
+        <div class="score">Score: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div class="controls">
+            <p>🎮 Keyboard: Arrow Keys or WASD | Gamepad: D-Pad or Left Stick</p>
+            <p>Press SPACE or Gamepad A to start/restart</p>
+        </div>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <h2>Game Over!</h2>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <button class="restart-btn" onclick="resetGame()">Play Again</button>
+    </div>
+    
+    <div class="gamepad-indicator" id="gamepadIndicator">
+        🎮 Gamepad Connected
     </div>
 
     <script>
-    // Super-compressed Snake game with gamepad support
-    (()=>{
-        // Canvas setup
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-        const blockSize = 20;
-        const widthInBlocks = width / blockSize;
-        const heightInBlocks = height / blockSize;
-        const scoreDisplay = document.getElementById('score');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('finalScore');
+        const gameOverElement = document.getElementById('gameOver');
+        const gamepadIndicator = document.getElementById('gamepadIndicator');
         
-        // Game state variables
-        let snake, food, score, gameOver, direction, nextDirection, gameLoop;
-        let gamepads = {};
-        let deadzone = 0.25;
+        // Game settings
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
         
-        // Back button
-        document.getElementById('backBtn').addEventListener('click', () => {
-            window.location.href = '../library.html';
-        });
+        let snake = [
+            {x: 10, y: 10}
+        ];
+        let dx = 0;
+        let dy = 0;
+        let food = {};
+        let score = 0;
+        let gameRunning = false;
+        let gamepadIndex = null;
         
         // Initialize game
         function init() {
-            score = 0;
-            scoreDisplay.textContent = score;
-            direction = 'right';
-            nextDirection = direction;
-            gameOver = false;
-            
-            // Create snake (array of coordinates)
-            snake = [
-                {x: 3, y: Math.floor(heightInBlocks / 2)},
-                {x: 2, y: Math.floor(heightInBlocks / 2)},
-                {x: 1, y: Math.floor(heightInBlocks / 2)}
-            ];
-            
-            // Create initial food
-            createFood();
-            
-            // Clear any existing game loop
-            if (gameLoop) clearInterval(gameLoop);
-            
-            // Start game loop
-            gameLoop = setInterval(gameStep, 100);
+            generateFood();
+            gameRunning = true;
+            gameLoop();
         }
         
-        // Create food at random position
-        function createFood() {
-            // Generate random position
-            let x, y;
-            do {
-                x = Math.floor(Math.random() * (widthInBlocks - 2)) + 1;
-                y = Math.floor(Math.random() * (heightInBlocks - 2)) + 1;
-            } while (snake.some(segment => segment.x === x && segment.y === y));
-            food = {x, y};
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            handleGamepad();
+            update();
+            draw();
+            
+            setTimeout(gameLoop, 100);
         }
         
-        // One step of the game
-        function gameStep() {
-            if (gameOver) return;
+        // Update game state
+        function update() {
+            // Move snake head
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
             
-            // Update direction based on pending move
-            direction = nextDirection;
-            
-            // Calculate new head position
-            const head = {x: snake[0].x, y: snake[0].y};
-            
-            switch(direction) {
-                case 'up': head.y--; break;
-                case 'down': head.y++; break;
-                case 'left': head.x--; break;
-                case 'right': head.x++; break;
-            }
-            
-            // Check for collisions
-            if (
-                head.x < 0 || head.x >= widthInBlocks || 
-                head.y < 0 || head.y >= heightInBlocks ||
-                snake.some(segment => segment.x === head.x && segment.y === head.y)
-            ) {
-                gameOver = true;
-                drawGameOver();
+            // Check wall collision
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver();
                 return;
             }
             
-            // Add new head
-            snake.unshift(head);
-            
-            // Check if food eaten
-            if (head.x === food.x && head.y === food.y) {
-                score++;
-                scoreDisplay.textContent = score;
-                createFood();
-            } else {
-                // Remove tail if no food eaten
-                snake.pop();
+            // Check self collision
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
             }
             
-            // Draw everything
-            draw();
+            snake.unshift(head);
+            
+            // Check food collision
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreElement.textContent = score;
+                generateFood();
+            } else {
+                snake.pop();
+            }
         }
         
-        // Draw game elements
+        // Draw game
         function draw() {
             // Clear canvas
             ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, width, height);
-            
-            // Draw border
-            ctx.strokeStyle = '#107C10';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, 0, width, height);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Draw snake
-            snake.forEach((segment, i) => {
-                ctx.fillStyle = i === 0 ? '#25e025' : '#107C10'; // Head is brighter
-                ctx.fillRect(segment.x * blockSize, segment.y * blockSize, blockSize, blockSize);
+            ctx.fillStyle = '#00ff88';
+            for (let i = 0; i < snake.length; i++) {
+                const segment = snake[i];
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
                 
-                // Add eyes to head
+                // Make head brighter
                 if (i === 0) {
-                    ctx.fillStyle = '#000';
-                    // Eyes position depends on direction
-                    const eyeSize = 4;
-                    if (direction === 'right' || direction === 'left') {
-                        const eyeY = segment.y * blockSize + blockSize / 3;
-                        ctx.fillRect(segment.x * blockSize + (direction === 'right' ? 3*blockSize/4 : blockSize/4), eyeY, eyeSize, eyeSize);
-                    } else {
-                        const eyeX = segment.x * blockSize + blockSize / 3;
-                        ctx.fillRect(eyeX, segment.y * blockSize + (direction === 'down' ? 3*blockSize/4 : blockSize/4), eyeSize, eyeSize);
-                    }
+                    ctx.fillStyle = '#44ffaa';
+                    ctx.fillRect(segment.x * gridSize + 2, segment.y * gridSize + 2, gridSize - 6, gridSize - 6);
+                    ctx.fillStyle = '#00ff88';
                 }
-            });
+            }
             
             // Draw food
-            ctx.fillStyle = '#ff4040';
+            ctx.fillStyle = '#ff4444';
             ctx.beginPath();
-            const foodX = food.x * blockSize + blockSize/2;
-            const foodY = food.y * blockSize + blockSize/2;
-            ctx.arc(foodX, foodY, blockSize/2, 0, Math.PI * 2);
+            ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
             ctx.fill();
         }
         
-        // Game over screen
-        function drawGameOver() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(0, 0, width, height);
+        // Generate food at random position
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
             
-            ctx.font = '36px Arial';
-            ctx.fillStyle = '#ff4040';
-            ctx.textAlign = 'center';
-            ctx.fillText('Game Over!', width/2, height/2 - 30);
-            
-            ctx.font = '24px Arial';
-            ctx.fillStyle = '#fff';
-            ctx.fillText(`Score: ${score}`, width/2, height/2 + 20);
-            
-            ctx.font = '18px Arial';
-            ctx.fillText('Press "A" to Play Again', width/2, height/2 + 60);
+            // Make sure food doesn't spawn on snake
+            for (let segment of snake) {
+                if (segment.x === food.x && segment.y === food.y) {
+                    generateFood();
+                    return;
+                }
+            }
         }
         
-        // Handle keyboard input
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+            gameOverElement.classList.add('active');
+        }
+        
+        // Reset game
+        function resetGame() {
+            snake = [{x: 10, y: 10}];
+            dx = 0;
+            dy = 0;
+            score = 0;
+            scoreElement.textContent = score;
+            gameOverElement.classList.remove('active');
+            generateFood();
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        // Keyboard controls
         document.addEventListener('keydown', (e) => {
+            if (!gameRunning && (e.key === ' ' || e.key === 'Enter')) {
+                resetGame();
+                return;
+            }
+            
+            if (!gameRunning) return;
+            
             switch(e.key) {
                 case 'ArrowUp':
-                    if (direction !== 'down') nextDirection = 'up';
+                case 'w':
+                case 'W':
+                    if (dy === 0) {
+                        dx = 0;
+                        dy = -1;
+                    }
                     break;
                 case 'ArrowDown':
-                    if (direction !== 'up') nextDirection = 'down';
+                case 's':
+                case 'S':
+                    if (dy === 0) {
+                        dx = 0;
+                        dy = 1;
+                    }
                     break;
                 case 'ArrowLeft':
-                    if (direction !== 'right') nextDirection = 'left';
+                case 'a':
+                case 'A':
+                    if (dx === 0) {
+                        dx = -1;
+                        dy = 0;
+                    }
                     break;
                 case 'ArrowRight':
-                    if (direction !== 'left') nextDirection = 'right';
-                    break;
-                case ' ': // Space to restart
-                    if (gameOver) init();
+                case 'd':
+                case 'D':
+                    if (dx === 0) {
+                        dx = 1;
+                        dy = 0;
+                    }
                     break;
             }
         });
         
-        // Gamepad handling
+        // Gamepad support
         window.addEventListener('gamepadconnected', (e) => {
-            gamepads[e.gamepad.index] = e.gamepad;
+            gamepadIndex = e.gamepad.index;
+            gamepadIndicator.classList.add('active');
             console.log('Gamepad connected:', e.gamepad.id);
         });
         
         window.addEventListener('gamepaddisconnected', (e) => {
-            delete gamepads[e.gamepad.index];
-            console.log('Gamepad disconnected');
+            if (e.gamepad.index === gamepadIndex) {
+                gamepadIndex = null;
+                gamepadIndicator.classList.remove('active');
+            }
         });
         
-        // Gamepad polling
-        function pollGamepads() {
-            const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+        // Handle gamepad input
+        function handleGamepad() {
+            if (gamepadIndex === null) return;
             
-            for (let i = 0; i < gps.length; i++) {
-                if (gps[i]) {
-                    const gp = gps[i];
-                    
-                    // D-pad
-                    if (gp.buttons[12] && gp.buttons[12].pressed && direction !== 'down') {
-                        nextDirection = 'up';
-                    }
-                    if (gp.buttons[13] && gp.buttons[13].pressed && direction !== 'up') {
-                        nextDirection = 'down';
-                    }
-                    if (gp.buttons[14] && gp.buttons[14].pressed && direction !== 'right') {
-                        nextDirection = 'left';
-                    }
-                    if (gp.buttons[15] && gp.buttons[15].pressed && direction !== 'left') {
-                        nextDirection = 'right';
-                    }
-                    
-                    // Left stick
-                    const leftX = gp.axes[0];
-                    const leftY = gp.axes[1];
-                    
-                    if (leftX < -deadzone && direction !== 'right') {
-                        nextDirection = 'left';
-                    } else if (leftX > deadzone && direction !== 'left') {
-                        nextDirection = 'right';
-                    }
-                    
-                    if (leftY < -deadzone && direction !== 'down') {
-                        nextDirection = 'up';
-                    } else if (leftY > deadzone && direction !== 'up') {
-                        nextDirection = 'down';
-                    }
-                    
-                    // A button to restart
-                    if (gameOver && gp.buttons[0] && gp.buttons[0].pressed) {
-                        init();
-                    }
+            const gamepad = navigator.getGamepads()[gamepadIndex];
+            if (!gamepad) return;
+            
+            // D-pad or left stick
+            const threshold = 0.5;
+            
+            // Check buttons (D-pad)
+            if (gamepad.buttons[12] && gamepad.buttons[12].pressed) { // Up
+                if (dy === 0) {
+                    dx = 0;
+                    dy = -1;
+                }
+            } else if (gamepad.buttons[13] && gamepad.buttons[13].pressed) { // Down
+                if (dy === 0) {
+                    dx = 0;
+                    dy = 1;
+                }
+            } else if (gamepad.buttons[14] && gamepad.buttons[14].pressed) { // Left
+                if (dx === 0) {
+                    dx = -1;
+                    dy = 0;
+                }
+            } else if (gamepad.buttons[15] && gamepad.buttons[15].pressed) { // Right
+                if (dx === 0) {
+                    dx = 1;
+                    dy = 0;
                 }
             }
             
-            requestAnimationFrame(pollGamepads);
+            // Check analog stick
+            if (Math.abs(gamepad.axes[0]) > threshold || Math.abs(gamepad.axes[1]) > threshold) {
+                if (gamepad.axes[1] < -threshold && dy === 0) { // Up
+                    dx = 0;
+                    dy = -1;
+                } else if (gamepad.axes[1] > threshold && dy === 0) { // Down
+                    dx = 0;
+                    dy = 1;
+                } else if (gamepad.axes[0] < -threshold && dx === 0) { // Left
+                    dx = -1;
+                    dy = 0;
+                } else if (gamepad.axes[0] > threshold && dx === 0) { // Right
+                    dx = 1;
+                    dy = 0;
+                }
+            }
+            
+            // A button to restart
+            if (!gameRunning && gamepad.buttons[0] && gamepad.buttons[0].pressed) {
+                resetGame();
+            }
         }
         
-        // Start polling for gamepad input
-        pollGamepads();
-        
-        // Initialize game
+        // Start game
         init();
-    })();
     </script>
 </body>
 </html>
