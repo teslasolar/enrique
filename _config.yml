@@ -1,0 +1,19 @@
+# GitHub Pages Configuration
+theme: null
+title: Enrique Martinez Vargas - Chemical Engineer
+description: Chemical Engineer and Manufacturing Engineer with 6+ years of experience in industrial processes and operations optimization
+url: https://yourusername.github.io
+baseurl: /enrique
+
+# SEO Tags
+author: Enrique Martinez Vargas
+social:
+  name: Enrique Martinez Vargas
+  links:
+    - https://www.linkedin.com/in/enrique-martinez-vargas-298129195/
+
+# Build settings
+markdown: kramdown
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
