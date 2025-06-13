@@ -14,6 +14,25 @@ class ComponentLoader {
         return '';
     }
     
+    fixRelativePaths(html) {
+        // Fix image sources
+        html = html.replace(/src="(?!http|https|\/)([^"]+)"/g, `src="${this.basePath}/$1"`);
+        
+        // Fix link hrefs (but not anchors)
+        html = html.replace(/href="(?!http|https|\/|#)([^"]+)"/g, `href="${this.basePath}/$1"`);
+        
+        // Fix script sources
+        html = html.replace(/src="js\//g, `src="${this.basePath}/js/`);
+        
+        // If no basePath (local development), ensure paths start with ./
+        if (!this.basePath) {
+            html = html.replace(/src="\/([^"]+)"/g, 'src="./$1"');
+            html = html.replace(/href="\/([^"]+)"/g, 'href="./$1"');
+        }
+        
+        return html;
+    }
+    
     async loadComponent(componentName, targetElement) {
         try {
             // Check if element exists
@@ -34,7 +53,11 @@ class ComponentLoader {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const html = await response.text();
+            let html = await response.text();
+            
+            // Fix relative paths in the HTML
+            html = this.fixRelativePaths(html);
+            
             container.innerHTML = html;
             
             // Mark as loaded
