@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrique Martinez Vargas - Chemical Engineer</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Chemical Engineer with 6+ years of experience in industrial processes, operations optimization, and sustainable solutions.">
+    <meta name="keywords" content="Chemical Engineer, Manufacturing Engineer, Ingeniero Químico, Monterrey">
+    <meta name="author" content="Enrique Martinez Vargas">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="picture/face.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/themes.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loader">
+            <div class="loader-image">
+                <img src="picture/face.png" alt="Loading..." />
+                <div class="loader-circle"></div>
+            </div>
+            <div class="loader-text">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Load Component Loader -->
+    <script src="js/component-loader.js"></script>
+
+    <!-- Load Components using script tags -->
+    <script>componentLoader.injectComponent('navbar');</script>
+    <script>componentLoader.injectComponent('hero');</script>
+    <script>componentLoader.injectComponent('about');</script>
+    <script>componentLoader.injectComponent('experience');</script>
+    <script>componentLoader.injectComponent('education');</script>
+    <script>componentLoader.injectComponent('skills');</script>
+    <script>componentLoader.injectComponent('certifications');</script>
+    <script>componentLoader.injectComponent('contact');</script>
+    <script>componentLoader.injectComponent('footer');</script>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Initialize App -->
+    <script>
+        // Wait for all components to load
+        let componentsToLoad = 9;
+        let componentsLoaded = 0;
+        
+        window.addEventListener('componentLoaded', function(e) {
+            componentsLoaded++;
+            console.log(`Loaded: ${e.detail.component} (${componentsLoaded}/${componentsToLoad})`);
+            
+            if (componentsLoaded === componentsToLoad) {
+                // All components loaded, initialize
+                setTimeout(initializeApp, 100);
+            }
+        });
+        
+        function initializeApp() {
+            // Hide loading screen
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }
+            
+            // Apply saved theme
+            const savedTheme = localStorage.getItem('theme') || 'default';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Back to top visibility
+            window.addEventListener('scroll', () => {
+                const backToTop = document.querySelector('.back-to-top');
+                if (window.scrollY > 500) {
+                    backToTop.style.display = 'block';
+                } else {
+                    backToTop.style.display = 'none';
+                }
+            });
+            
+            console.log('App initialized!');
+        }
+        
+        // Fallback if components don't load
+        setTimeout(function() {
+            if (componentsLoaded < componentsToLoad) {
+                console.warn('Some components failed to load');
+                initializeApp();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

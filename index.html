@@ -7,7 +7,7 @@
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="Chemical Engineer with 6+ years of experience in industrial processes, operations optimization, and sustainable solutions.">
-    <meta name="keywords" content="Chemical Engineer, Manufacturing Engineer, Ingeniero Químico, Monterrey, Process Optimization">
+    <meta name="keywords" content="Chemical Engineer, Manufacturing Engineer, Ingeniero Químico, Monterrey">
     <meta name="author" content="Enrique Martinez Vargas">
     
     <!-- Favicon -->
@@ -22,375 +22,162 @@
     <!-- Styles -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/themes.css">
+    
+    <style>
+        /* Loading/Welcome Screen Styles */
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .welcome-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .welcome-logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 2rem;
+            border: 4px solid white;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+        
+        .welcome-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .welcome-btn {
+            padding: 1rem 2rem;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .welcome-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loading-dots {
+            display: inline-block;
+            margin-top: 2rem;
+        }
+        
+        .loading-dots span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <img src="picture/face.png" alt="EMV" class="nav-profile-img" />
-                <span>EMV</span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#hero">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#experience">Experience</a></li>
-                <li><a href="#education">Education</a></li>
-                <li><a href="#skills">Skills</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-            <div class="nav-actions">
-                <button class="theme-toggle" onclick="toggleTheme()">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
-            <div class="nav-toggle" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <header id="hero" class="hero">
-        <div class="hero-content">
-            <div class="hero-profile-image">
-                <img src="picture/face.png" alt="Enrique Martinez Vargas" />
-                <div class="hero-image-decoration"></div>
-            </div>
-            <h1 class="hero-title">Enrique Martinez Vargas</h1>
-            <p class="hero-subtitle">Chemical Engineer | Manufacturing Engineer</p>
-            <p class="hero-location">
-                <i class="fas fa-map-marker-alt"></i> Monterrey, Nuevo León, Mexico
-            </p>
-            <div class="hero-actions">
-                <a href="#contact" class="btn btn-primary">
-                    <i class="fas fa-envelope"></i> Contact Me
-                </a>
-                <a href="#about" class="btn btn-secondary">
-                    <i class="fas fa-user"></i> Learn More
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <!-- About Section -->
-    <section id="about" class="section">
-        <div class="container">
-            <h2 class="section-title">About Me</h2>
-            <div class="about-content">
-                <div class="about-text">
-                    <p>Chemical Engineer with over 6 years of experience in manufacturing and process optimization. Currently working at The Hershey Company as a Manufacturing Engineer, where I lead continuous improvement initiatives and optimize production processes.</p>
-                    <p>My expertise spans across brewing processes, confectionery manufacturing, and industrial process optimization. I'm passionate about implementing sustainable solutions and driving operational excellence.</p>
-                    <div class="stats">
-                        <div class="stat-item">
-                            <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                            <div class="stat-number">6+</div>
-                            <div class="stat-label">Years Experience</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon"><i class="fas fa-certificate"></i></div>
-                            <div class="stat-number">5+</div>
-                            <div class="stat-label">Certifications</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
-                            <div class="stat-number">10+</div>
-                            <div class="stat-label">Major Projects</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Experience Section -->
-    <section id="experience" class="section section-alt">
-        <div class="container">
-            <h2 class="section-title">Experience</h2>
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-date">2021 - Present</div>
-                    <div class="timeline-content">
-                        <h3>Manufacturing Engineer</h3>
-                        <h4>The Hershey Company</h4>
-                        <p>Leading continuous improvement initiatives in confectionery manufacturing. Implementing process optimizations that have resulted in significant efficiency gains and cost savings.</p>
-                        <ul>
-                            <li>Process optimization and automation</li>
-                            <li>Quality control and assurance</li>
-                            <li>Team leadership and training</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-date">2018 - 2021</div>
-                    <div class="timeline-content">
-                        <h3>Process Engineer</h3>
-                        <h4>Cuauhtémoc Moctezuma Brewery</h4>
-                        <p>Optimized brewing processes and implemented quality control measures. Worked on various projects to improve production efficiency and product quality.</p>
-                        <ul>
-                            <li>Brewing process optimization</li>
-                            <li>Quality assurance protocols</li>
-                            <li>Equipment maintenance planning</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Education Section -->
-    <section id="education" class="section">
-        <div class="container">
-            <h2 class="section-title">Education</h2>
-            <div class="education-grid">
-                <div class="education-card">
-                    <div class="education-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <h3>Bachelor of Chemical Engineering</h3>
-                    <h4>Instituto Tecnológico y de Estudios Superiores de Monterrey</h4>
-                    <p class="education-date">2013 - 2018</p>
-                    <p>Specialized in industrial processes and manufacturing optimization.</p>
-                </div>
-                <div class="education-card">
-                    <div class="education-icon">
-                        <i class="fas fa-certificate"></i>
-                    </div>
-                    <h3>Professional Certifications</h3>
-                    <h4>Various Institutions</h4>
-                    <p class="education-date">2018 - Present</p>
-                    <p>Continuous learning in process optimization, quality management, and industrial safety.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Skills Section -->
-    <section id="skills" class="section section-alt">
-        <div class="container">
-            <h2 class="section-title">Skills</h2>
-            <div class="skills-grid">
-                <div class="skill-category">
-                    <h3><i class="fas fa-cogs"></i> Technical Skills</h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">Process Optimization</span>
-                        <span class="skill-tag">Quality Control</span>
-                        <span class="skill-tag">Six Sigma</span>
-                        <span class="skill-tag">Lean Manufacturing</span>
-                        <span class="skill-tag">Data Analysis</span>
-                        <span class="skill-tag">AutoCAD</span>
-                        <span class="skill-tag">MATLAB</span>
-                        <span class="skill-tag">Aspen Plus</span>
-                    </div>
-                </div>
-                <div class="skill-category">
-                    <h3><i class="fas fa-industry"></i> Industry Knowledge</h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">Brewing Processes</span>
-                        <span class="skill-tag">Food Manufacturing</span>
-                        <span class="skill-tag">GMP</span>
-                        <span class="skill-tag">HACCP</span>
-                        <span class="skill-tag">ISO Standards</span>
-                        <span class="skill-tag">Safety Protocols</span>
-                    </div>
-                </div>
-                <div class="skill-category">
-                    <h3><i class="fas fa-users"></i> Soft Skills</h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">Team Leadership</span>
-                        <span class="skill-tag">Problem Solving</span>
-                        <span class="skill-tag">Communication</span>
-                        <span class="skill-tag">Project Management</span>
-                        <span class="skill-tag">Critical Thinking</span>
-                    </div>
-                </div>
-                <div class="skill-category">
-                    <h3><i class="fas fa-language"></i> Languages</h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">Spanish (Native)</span>
-                        <span class="skill-tag">English (Professional)</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="section">
-        <div class="container">
-            <h2 class="section-title">Get In Touch</h2>
-            <div class="contact-content">
-                <div class="contact-info">
-                    <h3>Let's Connect</h3>
-                    <p>I'm always interested in discussing new opportunities, collaborations, or just having a conversation about engineering and innovation.</p>
-                    <div class="contact-items">
-                        <div class="contact-item">
-                            <i class="fas fa-envelope"></i>
-                            <a href="mailto:enrique.martinez@example.com">enrique.martinez@example.com</a>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fab fa-linkedin"></i>
-                            <a href="https://www.linkedin.com/in/enrique-martinez-vargas-298129195/" target="_blank">LinkedIn Profile</a>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>Monterrey, Nuevo León, Mexico</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="contact-form-wrapper">
-                    <form id="contact-form" class="contact-form">
-                        <div class="form-group">
-                            <input type="text" name="name" placeholder="Your Name" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="email" name="email" placeholder="Your Email" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="subject" placeholder="Subject" required>
-                        </div>
-                        <div class="form-group">
-                            <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i> Send Message
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <p>&copy; 2024 Enrique Martinez Vargas. All rights reserved.</p>
-                <div class="footer-links">
-                    <a href="https://www.linkedin.com/in/enrique-martinez-vargas-298129195/" target="_blank">
-                        <i class="fab fa-linkedin"></i>
-                    </a>
-                    <a href="mailto:enrique.martinez@example.com">
-                        <i class="fas fa-envelope"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Back to Top Button -->
-    <button class="back-to-top" onclick="scrollToTop()">
-        <i class="fas fa-arrow-up"></i>
-    </button>
-
-    <!-- Simple JavaScript -->
-    <script>
-        // Theme Toggle
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'default';
-            const newTheme = currentTheme === 'dark' ? 'default' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+    <!-- Welcome/Loading Screen -->
+    <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-content">
+            <img src="picture/face.png" alt="Enrique Martinez Vargas" class="welcome-logo">
+            <h1 class="welcome-title">Enrique Martinez Vargas</h1>
+            <p class="welcome-subtitle">Chemical Engineer | Manufacturing Expert</p>
             
-            // Update icon
-            const icon = document.querySelector('.theme-toggle i');
-            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
+            <div class="welcome-actions">
+                <a href="home.html" class="welcome-btn">
+                    <i class="fas fa-home"></i> Enter Portfolio
+                </a>
+                <a href="about.html" class="welcome-btn">
+                    <i class="fas fa-user"></i> About Me
+                </a>
+                <a href="contact.html" class="welcome-btn">
+                    <i class="fas fa-envelope"></i> Contact
+                </a>
+            </div>
+            
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
 
-        // Load saved theme
+    <script>
+        // Auto-redirect to home after a delay (optional)
+        setTimeout(function() {
+            // You can enable auto-redirect by uncommenting the line below
+            // window.location.href = 'home.html';
+        }, 3000);
+        
+        // Apply saved theme
         const savedTheme = localStorage.getItem('theme') || 'default';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        if (savedTheme === 'dark') {
-            document.querySelector('.theme-toggle i').className = 'fas fa-sun';
-        }
-
-        // Mobile Menu Toggle
-        function toggleMobileMenu() {
-            const navMenu = document.querySelector('.nav-menu');
-            const navToggle = document.querySelector('.nav-toggle');
-            navMenu.classList.toggle('active');
-            navToggle.classList.toggle('active');
-        }
-
-        // Smooth Scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+        
+        // Fade out animation when clicking a link
+        document.querySelectorAll('.welcome-btn').forEach(link => {
+            link.addEventListener('click', function(e) {
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    const navHeight = document.querySelector('.navbar').offsetHeight;
-                    const targetPosition = target.offsetTop - navHeight;
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                    
-                    // Close mobile menu if open
-                    document.querySelector('.nav-menu').classList.remove('active');
-                    document.querySelector('.nav-toggle').classList.remove('active');
-                }
+                const href = this.getAttribute('href');
+                document.getElementById('welcome-screen').classList.add('fade-out');
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 500);
             });
-        });
-
-        // Navbar scroll effect
-        window.addEventListener('scroll', () => {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 100) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-
-            // Show/hide back to top button
-            const backToTop = document.querySelector('.back-to-top');
-            if (window.scrollY > 500) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
-            }
-        });
-
-        // Back to top
-        function scrollToTop() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
-
-        // Contact form
-        document.getElementById('contact-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for your message! I will get back to you soon.');
-            this.reset();
-        });
-
-        // Simple animations on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // Observe elements
-        document.querySelectorAll('.section-title, .timeline-item, .education-card, .skill-category').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(el);
         });
     </script>
 </body>
