@@ -4,11 +4,27 @@ class App {
         this.currentLang = localStorage.getItem('language') || 'es'; // Default to Spanish
         this.translations = {};
         this.components = {};
+        // Determine base path for GitHub Pages or local development
+        this.basePath = this.getBasePath();
         this.init();
+    }
+
+    getBasePath() {
+        // Check if we're on GitHub Pages
+        if (window.location.hostname.includes('github.io')) {
+            // Extract repo name from pathname
+            const pathParts = window.location.pathname.split('/');
+            return pathParts[1] ? `/${pathParts[1]}` : '';
+        }
+        return '';
     }
 
     async init() {
         try {
+            console.log('Initializing app...');
+            console.log('Base path:', this.basePath);
+            console.log('Current URL:', window.location.href);
+            
             // Load translations
             await this.loadTranslations();
             
@@ -27,15 +43,28 @@ class App {
             // Initialize animations
             this.initAnimations();
             
+            console.log('App initialized successfully');
+            
         } catch (error) {
             console.error('Error initializing app:', error);
+            // Show error message to user
+            const app = document.getElementById('app');
+            if (app) {
+                app.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #e74c3c;">
+                        <h2>Error Loading Application</h2>
+                        <p>Please check the console for details.</p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
         }
     }
 
     async loadTranslations() {
         try {
-            const enResponse = await fetch('lang/en.json');
-            const esResponse = await fetch('lang/es.json');
+            const enResponse = await fetch(`${this.basePath}/lang/en.json`);
+            const esResponse = await fetch(`${this.basePath}/lang/es.json`);
             
             this.translations.en = await enResponse.json();
             this.translations.es = await esResponse.json();
@@ -56,7 +85,7 @@ class App {
                 'summary.json'
             ];
 
-            const promises = files.map(file => fetch(file).then(res => res.json()));
+            const promises = files.map(file => fetch(`${this.basePath}/${file}`).then(res => res.json()));
             const data = await Promise.all(promises);
             
             this.profileData = {
@@ -88,13 +117,25 @@ class App {
             'footer'
         ];
 
+        console.log('Loading components...');
+        let loadedCount = 0;
+        
         for (const module of componentModules) {
             try {
-                const component = await import(`./components/${module}.js`);
+                const moduleUrl = `${this.basePath}/components/${module}.js`;
+                console.log(`Loading component: ${moduleUrl}`);
+                const component = await import(moduleUrl);
                 this.components[module] = component.default;
+                loadedCount++;
             } catch (error) {
-                console.warn(`Could not load component ${module}:`, error);
+                console.error(`Failed to load component ${module}:`, error);
             }
+        }
+        
+        console.log(`Successfully loaded ${loadedCount}/${componentModules.length} components`);
+        
+        if (loadedCount === 0) {
+            throw new Error('No components could be loaded. Check the console for details.');
         }
     }
 
