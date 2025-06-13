@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Enrique Martinez Vargas</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="picture/face.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/themes.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">
+                    <img src="picture/face.png" alt="EMV" class="nav-profile-img" />
+                    <span>EMV</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html" class="active">About</a></li>
+                <li><a href="experience.html">Experience</a></li>
+                <li><a href="education.html">Education</a></li>
+                <li><a href="skills.html">Skills</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1>About Me</h1>
+            <p>Get to know more about my journey and expertise</p>
+        </div>
+    </header>
+
+    <!-- About Content -->
+    <section class="section">
+        <div class="container">
+            <div class="about-detailed">
+                <div class="about-intro">
+                    <img src="picture/face.png" alt="Enrique Martinez Vargas" class="about-photo">
+                    <div class="about-text">
+                        <h2>Enrique Martinez Vargas</h2>
+                        <h3>Chemical Engineer | Manufacturing Expert</h3>
+                        <p>With over 6 years of experience in the manufacturing industry, I have developed a deep expertise in process optimization, quality control, and continuous improvement. My journey has taken me from brewing processes to confectionery manufacturing, always with a focus on innovation and efficiency.</p>
+                    </div>
+                </div>
+
+                <div class="about-details">
+                    <h3>Professional Journey</h3>
+                    <p>My career began at Cuauhtémoc Moctezuma Brewery, where I discovered my passion for industrial processes and optimization. Working in the brewing industry taught me the importance of precision, quality, and consistency in manufacturing.</p>
+                    
+                    <p>Currently at The Hershey Company, I lead manufacturing engineering initiatives that drive operational excellence. My role involves implementing cutting-edge technologies, optimizing production lines, and ensuring the highest quality standards in confectionery manufacturing.</p>
+
+                    <h3>Core Values</h3>
+                    <div class="values-grid">
+                        <div class="value-item">
+                            <i class="fas fa-lightbulb"></i>
+                            <h4>Innovation</h4>
+                            <p>Constantly seeking new ways to improve processes and solve complex problems.</p>
+                        </div>
+                        <div class="value-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <h4>Quality</h4>
+                            <p>Committed to maintaining the highest standards in everything I do.</p>
+                        </div>
+                        <div class="value-item">
+                            <i class="fas fa-users"></i>
+                            <h4>Collaboration</h4>
+                            <p>Believing in the power of teamwork to achieve exceptional results.</p>
+                        </div>
+                        <div class="value-item">
+                            <i class="fas fa-leaf"></i>
+                            <h4>Sustainability</h4>
+                            <p>Dedicated to implementing environmentally responsible solutions.</p>
+                        </div>
+                    </div>
+
+                    <h3>Achievements</h3>
+                    <ul class="achievements-list">
+                        <li>Led process optimization projects resulting in 20% efficiency improvement</li>
+                        <li>Implemented quality control systems that reduced defects by 35%</li>
+                        <li>Trained over 50 team members in lean manufacturing principles</li>
+                        <li>Received recognition for safety improvements and zero-accident initiatives</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 Enrique Martinez Vargas. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="https://www.linkedin.com/in/enrique-martinez-vargas-298129195/" target="_blank">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="mailto:enrique.martinez@example.com">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Simple JavaScript -->
+    <script>
+        // Theme Toggle
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'default';
+            const newTheme = currentTheme === 'dark' ? 'default' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const icon = document.querySelector('.theme-toggle i');
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'default';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'dark') {
+            document.querySelector('.theme-toggle i').className = 'fas fa-sun';
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const navMenu = document.querySelector('.nav-menu');
+            const navToggle = document.querySelector('.nav-toggle');
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>
