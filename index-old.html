@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrique Martinez Vargas - Chemical Engineer | Ingeniero Químico</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Chemical Engineer with 6+ years of experience in industrial processes, operations optimization, and sustainable solutions. Ingeniero Químico con más de 6 años de experiencia.">
+    <meta name="keywords" content="Chemical Engineer, Manufacturing Engineer, Ingeniero Químico, Monterrey, Process Optimization, Brewing, Hershey">
+    <meta name="author" content="Enrique Martinez Vargas">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourusername.github.io/enrique/">
+    <meta property="og:title" content="Enrique Martinez Vargas - Chemical Engineer">
+    <meta property="og:description" content="Chemical Engineer with expertise in industrial processes and manufacturing optimization">
+    <meta property="og:image" content="https://yourusername.github.io/enrique/picture/face.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourusername.github.io/enrique/">
+    <meta property="twitter:title" content="Enrique Martinez Vargas - Chemical Engineer">
+    <meta property="twitter:description" content="Chemical Engineer with expertise in industrial processes and manufacturing optimization">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="picture/face.png">
+    <link rel="apple-touch-icon" href="picture/face.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS Animation Library -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/piping.css">
+    <link rel="stylesheet" href="css/scroll-progress.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loader">
+            <div class="loader-image">
+                <img src="picture/face.png" alt="Loading..." />
+                <div class="loader-circle"></div>
+            </div>
+            <div class="loader-text">Enrique Martinez Vargas</div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app"></div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <!-- Inline initialization to handle loading -->
+    <script>
+        // Hide loading screen after a delay
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('hidden');
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+            }, 1000);
+        });
+        
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+    </script>
+    
+    <!-- Main App Script -->
+    <script type="module" src="./js/app.js"></script>
+    
+    <!-- Additional Scripts -->
+    <script src="./js/utils.js"></script>
+    <script src="./js/animations.js"></script>
+    <script src="./js/theme.js"></script>
+</body>
+</html>
