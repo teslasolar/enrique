@@ -1,0 +1,117 @@
+{
+  "nav": {
+    "about": "About",
+    "experience": "Experience",
+    "education": "Education",
+    "skills": "Skills",
+    "certifications": "Certifications",
+    "portfolio": "Portfolio",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "Enrique Martinez Vargas",
+    "subtitle": "Chemical Engineer | Manufacturing Engineer",
+    "location": "Monterrey, Nuevo León, Mexico",
+    "connectLinkedIn": "Connect on LinkedIn",
+    "getInTouch": "Get in Touch",
+    "downloadCV": "Download CV"
+  },
+  "about": {
+    "title": "About Me",
+    "description": "Results-oriented Chemical Engineer with 6+ years of experience in designing innovative industrial processes, optimizing operations, and driving cost reductions. Proven track record in improving product quality, increasing efficiency, and implementing sustainable solutions. Skilled in process simulation, data analysis, project management. Seeking a challenging role in a dynamic organization to contribute to the development and implementation of cutting-edge technologies.",
+    "stats": {
+      "yearsExperience": "Years Experience",
+      "companies": "Companies",
+      "certifications": "Certifications",
+      "projects": "Projects Completed"
+    }
+  },
+  "experience": {
+    "title": "Professional Experience",
+    "current": "Present",
+    "positions": {
+      "chemicalEngineer": "Chemical Engineer",
+      "brewingSupervisor": "Brewing Process Supervisor",
+      "brewingIntern": "Brewing Intern"
+    },
+    "descriptions": {
+      "hershey": "Full-time position in manufacturing engineering. LinkedIn helped me get this job.",
+      "supervisor": "Full-time supervisory role in brewing operations, leading process optimization initiatives.",
+      "intern": "Internship position in brewing operations, gaining hands-on experience in industrial processes."
+    }
+  },
+  "education": {
+    "title": "Education",
+    "degree": "Bachelor's Degree in Chemical Engineering",
+    "field": "Chemical Engineering"
+  },
+  "skills": {
+    "title": "Skills & Expertise",
+    "categories": {
+      "technical": "Technical Skills",
+      "industry": "Industry Specific",
+      "business": "Business & Management",
+      "languages": "Languages"
+    },
+    "items": {
+      "processSimulation": "Process Simulation",
+      "dataAnalysis": "Data Analysis",
+      "industrialDesign": "Industrial Process Design",
+      "operations": "Operations Optimization",
+      "quality": "Quality Improvement",
+      "sustainable": "Sustainable Solutions",
+      "manufacturing": "Manufacturing Engineering",
+      "brewing": "Brewing Process",
+      "food": "Food Manufacturing",
+      "chemical": "Chemical Engineering",
+      "project": "Project Management",
+      "cost": "Cost Reduction",
+      "process": "Process Improvement",
+      "spanish": "Spanish (Native)",
+      "english": "English (Professional)"
+    }
+  },
+  "certifications": {
+    "title": "Certifications",
+    "issued": "Issued",
+    "expires": "Expires"
+  },
+  "portfolio": {
+    "title": "Projects & Achievements",
+    "viewDetails": "View Details",
+    "technologies": "Technologies",
+    "impact": "Impact",
+    "processOptimization": "Process Optimization",
+    "qualityImprovement": "Quality Improvement",
+    "sustainabilityProject": "Sustainability Initiative"
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "description": "I'm always interested in discussing new opportunities and innovative projects in chemical engineering and manufacturing.",
+    "form": {
+      "name": "Your Name",
+      "email": "Your Email",
+      "subject": "Subject",
+      "message": "Message",
+      "send": "Send Message"
+    },
+    "info": {
+      "location": "Location",
+      "email": "Email",
+      "linkedin": "LinkedIn"
+    }
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "madeWith": "Made with",
+    "by": "by"
+  },
+  "common": {
+    "readMore": "Read More",
+    "viewAll": "View All",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  }
+}

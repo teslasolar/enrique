@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrique Martinez Vargas - Test Local</title>
+    <link rel="icon" type="image/png" href="picture/face.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/piping.css">
+    <style>
+        body { padding-top: 70px; }
+        .test-section { padding: 2rem; margin-bottom: 2rem; }
+        .theme-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+        .theme-btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <!-- Simple Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="picture/face.png" alt="EMV" class="nav-profile-img" />
+                <span>Enrique Martinez Vargas</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Theme Tester -->
+    <div class="container test-section">
+        <h1>Test Local - Prueba de Temas</h1>
+        <p>Esta página funciona sin servidor local. Haz clic en los botones para probar los temas:</p>
+        
+        <div class="theme-buttons">
+            <button class="theme-btn btn btn-primary" onclick="setTheme('default')">Default</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('dark')">Dark</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('chocolate')">🍫 Chocolate</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('beer')">🍺 Brewery</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('ocean')">Ocean</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('forest')">Forest</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('sunset')">Sunset</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('purple')">Purple</button>
+            <button class="theme-btn btn btn-primary" onclick="setTheme('high-contrast')">High Contrast</button>
+        </div>
+    </div>
+
+    <!-- Hero Preview -->
+    <header class="hero" style="min-height: 400px;">
+        <div class="hero-content">
+            <div class="hero-profile-image">
+                <img src="picture/face.png" alt="Enrique Martinez Vargas" />
+                <div class="hero-image-decoration"></div>
+            </div>
+            <h1 class="hero-title">Enrique Martinez Vargas</h1>
+            <p class="hero-subtitle">Chemical Engineer | Manufacturing Engineer</p>
+            <p class="hero-location">
+                <i class="fas fa-map-marker-alt"></i> Monterrey, Nuevo León, Mexico
+            </p>
+        </div>
+    </header>
+
+    <!-- Sample Components -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Componentes de Ejemplo</h2>
+            
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-number">6+</div>
+                    <div class="stat-label">Years Experience</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-building"></i></div>
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Companies</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Preview -->
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Skills Preview</h2>
+            <div class="skills-grid">
+                <div class="skill-category">
+                    <h3><i class="fas fa-code"></i> Technical Skills</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Process Simulation</span>
+                        <span class="skill-tag">Data Analysis</span>
+                        <span class="skill-tag">Manufacturing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            // Update page based on theme
+            if (theme === 'chocolate') {
+                document.querySelector('.hero-subtitle').innerHTML = 'Chemical Engineer @ Hershey 🍫';
+            } else if (theme === 'beer') {
+                document.querySelector('.hero-subtitle').innerHTML = 'Brewing Process Expert 🍺';
+            } else {
+                document.querySelector('.hero-subtitle').innerHTML = 'Chemical Engineer | Manufacturing Engineer';
+            }
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'default';
+        setTheme(savedTheme);
+    </script>
+</body>
+</html>

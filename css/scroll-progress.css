@@ -1,0 +1,13 @@
+/* Additional Component Styles */
+
+/* Scroll Progress Bar */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--primary-color);
+    z-index: var(--z-tooltip);
+    transition: width 0.1s ease;
+    width: 0%;
+}

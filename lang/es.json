@@ -1,0 +1,117 @@
+{
+  "nav": {
+    "about": "Acerca de",
+    "experience": "Experiencia",
+    "education": "Educación",
+    "skills": "Habilidades",
+    "certifications": "Certificaciones",
+    "portfolio": "Portafolio",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "title": "Enrique Martinez Vargas",
+    "subtitle": "Ingeniero Químico | Ingeniero de Manufactura",
+    "location": "Monterrey, Nuevo León, México",
+    "connectLinkedIn": "Conectar en LinkedIn",
+    "getInTouch": "Contactarme",
+    "downloadCV": "Descargar CV"
+  },
+  "about": {
+    "title": "Acerca de Mí",
+    "description": "Ingeniero Químico orientado a resultados con más de 6 años de experiencia en el diseño de procesos industriales innovadores, optimización de operaciones y reducción de costos. Trayectoria comprobada en la mejora de la calidad del producto, aumento de la eficiencia e implementación de soluciones sostenibles. Hábil en simulación de procesos, análisis de datos, gestión de proyectos. Busco un rol desafiante en una organización dinámica para contribuir al desarrollo e implementación de tecnologías de vanguardia.",
+    "stats": {
+      "yearsExperience": "Años de Experiencia",
+      "companies": "Empresas",
+      "certifications": "Certificaciones",
+      "projects": "Proyectos Completados"
+    }
+  },
+  "experience": {
+    "title": "Experiencia Profesional",
+    "current": "Presente",
+    "positions": {
+      "chemicalEngineer": "Ingeniero Químico",
+      "brewingSupervisor": "Supervisor de Proceso de Elaboración",
+      "brewingIntern": "Practicante de Elaboración"
+    },
+    "descriptions": {
+      "hershey": "Posición de tiempo completo en ingeniería de manufactura. LinkedIn me ayudó a conseguir este trabajo.",
+      "supervisor": "Rol de supervisión de tiempo completo en operaciones de elaboración, liderando iniciativas de optimización de procesos.",
+      "intern": "Posición de prácticas en operaciones de elaboración, adquiriendo experiencia práctica en procesos industriales."
+    }
+  },
+  "education": {
+    "title": "Educación",
+    "degree": "Licenciatura en Ingeniería Química",
+    "field": "Ingeniería Química"
+  },
+  "skills": {
+    "title": "Habilidades y Experiencia",
+    "categories": {
+      "technical": "Habilidades Técnicas",
+      "industry": "Específicas de la Industria",
+      "business": "Negocios y Gestión",
+      "languages": "Idiomas"
+    },
+    "items": {
+      "processSimulation": "Simulación de Procesos",
+      "dataAnalysis": "Análisis de Datos",
+      "industrialDesign": "Diseño de Procesos Industriales",
+      "operations": "Optimización de Operaciones",
+      "quality": "Mejora de Calidad",
+      "sustainable": "Soluciones Sostenibles",
+      "manufacturing": "Ingeniería de Manufactura",
+      "brewing": "Proceso de Elaboración",
+      "food": "Manufactura de Alimentos",
+      "chemical": "Ingeniería Química",
+      "project": "Gestión de Proyectos",
+      "cost": "Reducción de Costos",
+      "process": "Mejora de Procesos",
+      "spanish": "Español (Nativo)",
+      "english": "Inglés (Profesional)"
+    }
+  },
+  "certifications": {
+    "title": "Certificaciones",
+    "issued": "Emitido",
+    "expires": "Expira"
+  },
+  "portfolio": {
+    "title": "Proyectos y Logros",
+    "viewDetails": "Ver Detalles",
+    "technologies": "Tecnologías",
+    "impact": "Impacto",
+    "processOptimization": "Optimización de Procesos",
+    "qualityImprovement": "Mejora de Calidad",
+    "sustainabilityProject": "Iniciativa de Sostenibilidad"
+  },
+  "contact": {
+    "title": "Contáctame",
+    "description": "Siempre estoy interesado en discutir nuevas oportunidades y proyectos innovadores en ingeniería química y manufactura.",
+    "form": {
+      "name": "Tu Nombre",
+      "email": "Tu Correo",
+      "subject": "Asunto",
+      "message": "Mensaje",
+      "send": "Enviar Mensaje"
+    },
+    "info": {
+      "location": "Ubicación",
+      "email": "Correo",
+      "linkedin": "LinkedIn"
+    }
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados",
+    "madeWith": "Hecho con",
+    "by": "por"
+  },
+  "common": {
+    "readMore": "Leer Más",
+    "viewAll": "Ver Todo",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito"
+  }
+}

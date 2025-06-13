@@ -1,0 +1,358 @@
+/* Theme Styles */
+
+/* Dark Theme */
+[data-theme="dark"] {
+    /* Colors */
+    --primary-color: #60a5fa;
+    --primary-dark: #3b82f6;
+    --primary-light: #93c5fd;
+    --secondary-color: #94a3b8;
+    --accent-color: #34d399;
+    --danger-color: #f87171;
+    --warning-color: #fbbf24;
+    --success-color: #34d399;
+    
+    /* Backgrounds */
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --border-color: #334155;
+    
+    /* Shadows - adjusted for dark theme */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4);
+}
+
+/* Dark theme specific adjustments */
+[data-theme="dark"] .hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+}
+
+[data-theme="dark"] .navbar {
+    background: rgba(15, 23, 42, 0.95);
+}
+
+[data-theme="dark"] .navbar.scrolled {
+    background: rgba(15, 23, 42, 0.98);
+}
+
+[data-theme="dark"] .skill-tag {
+    background: rgba(30, 41, 59, 0.8);
+}
+
+[data-theme="dark"] .notification {
+    background: var(--surface-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group textarea {
+    background: var(--surface-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-group input:focus ~ label,
+[data-theme="dark"] .form-group input:not(:placeholder-shown) ~ label,
+[data-theme="dark"] .form-group textarea:focus ~ label,
+[data-theme="dark"] .form-group textarea:not(:placeholder-shown) ~ label {
+    background: var(--surface-color);
+}
+
+/* Chocolate Theme (Hershey) */
+[data-theme="chocolate"] {
+    --primary-color: #7B3F00;
+    --primary-dark: #5D2F00;
+    --primary-light: #A0522D;
+    --secondary-color: #D2691E;
+    --accent-color: #8B4513;
+    --background-color: #FFF8DC;
+    --surface-color: #F5DEB3;
+    --text-primary: #3E2723;
+    --text-secondary: #5D4037;
+    --border-color: #DEB887;
+}
+
+[data-theme="chocolate"] .hero {
+    background: linear-gradient(135deg, #7B3F00 0%, #D2691E 100%);
+}
+
+/* Beer Theme (Brewing) */
+[data-theme="beer"] {
+    --primary-color: #F28E1C;
+    --primary-dark: #D4761C;
+    --primary-light: #FFB347;
+    --secondary-color: #8B4513;
+    --accent-color: #DAA520;
+    --background-color: #FFFAF0;
+    --surface-color: #FFF5E1;
+    --text-primary: #4A2C17;
+    --text-secondary: #6B4423;
+    --border-color: #F4A460;
+}
+
+[data-theme="beer"] .hero {
+    background: linear-gradient(135deg, #F28E1C 0%, #8B4513 100%);
+}
+
+/* Ocean Theme */
+[data-theme="ocean"] {
+    --primary-color: #06b6d4;
+    --primary-dark: #0891b2;
+    --primary-light: #22d3ee;
+    --secondary-color: #64748b;
+    --accent-color: #14b8a6;
+    --background-color: #f0f9ff;
+    --surface-color: #e0f2fe;
+    --text-primary: #0c4a6e;
+    --text-secondary: #075985;
+    --border-color: #bae6fd;
+}
+
+[data-theme="ocean"] .hero {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+}
+
+/* Forest Theme */
+[data-theme="forest"] {
+    --primary-color: #10b981;
+    --primary-dark: #059669;
+    --primary-light: #34d399;
+    --secondary-color: #6b7280;
+    --accent-color: #84cc16;
+    --background-color: #f0fdf4;
+    --surface-color: #dcfce7;
+    --text-primary: #14532d;
+    --text-secondary: #166534;
+    --border-color: #bbf7d0;
+}
+
+[data-theme="forest"] .hero {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+/* Sunset Theme */
+[data-theme="sunset"] {
+    --primary-color: #f97316;
+    --primary-dark: #ea580c;
+    --primary-light: #fb923c;
+    --secondary-color: #78716c;
+    --accent-color: #f59e0b;
+    --background-color: #fffbeb;
+    --surface-color: #fef3c7;
+    --text-primary: #78350f;
+    --text-secondary: #92400e;
+    --border-color: #fde68a;
+}
+
+[data-theme="sunset"] .hero {
+    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+}
+
+/* Purple Theme */
+[data-theme="purple"] {
+    --primary-color: #a855f7;
+    --primary-dark: #9333ea;
+    --primary-light: #c084fc;
+    --secondary-color: #6b7280;
+    --accent-color: #ec4899;
+    --background-color: #faf5ff;
+    --surface-color: #f3e8ff;
+    --text-primary: #4c1d95;
+    --text-secondary: #6b21a8;
+    --border-color: #e9d5ff;
+}
+
+[data-theme="purple"] .hero {
+    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+}
+
+/* High Contrast Theme */
+[data-theme="high-contrast"] {
+    --primary-color: #000000;
+    --primary-dark: #000000;
+    --primary-light: #333333;
+    --secondary-color: #000000;
+    --accent-color: #000000;
+    --background-color: #ffffff;
+    --surface-color: #f0f0f0;
+    --text-primary: #000000;
+    --text-secondary: #000000;
+    --border-color: #000000;
+    --shadow-sm: 0 0 0 1px #000000;
+    --shadow-md: 0 0 0 2px #000000;
+    --shadow-lg: 0 0 0 3px #000000;
+}
+
+[data-theme="high-contrast"] * {
+    font-weight: 500;
+}
+
+[data-theme="high-contrast"] .hero {
+    background: #000000;
+}
+
+[data-theme="high-contrast"] .btn-primary {
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #000000;
+}
+
+[data-theme="high-contrast"] .btn-secondary {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+}
+
+/* Theme Transition */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Theme Switcher Styles */
+.theme-selector {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background: var(--surface-color);
+    border-radius: var(--radius-xl);
+    padding: 1rem;
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-fixed);
+    transform: translateX(-120%);
+    transition: transform var(--transition-base);
+}
+
+.theme-selector.active {
+    transform: translateX(0);
+}
+
+.theme-selector h4 {
+    font-size: var(--font-size-sm);
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.theme-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--theme-gradient);
+    z-index: -1;
+}
+
+.theme-option:hover {
+    transform: scale(1.1);
+}
+
+.theme-option.active {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 3px var(--primary-color);
+}
+
+/* Theme specific gradients */
+.theme-option[data-theme="chocolate"]::before {
+    background: linear-gradient(135deg, #7B3F00 0%, #D2691E 100%);
+}
+
+.theme-option[data-theme="beer"]::before {
+    background: linear-gradient(135deg, #F28E1C 0%, #8B4513 100%);
+}
+
+.theme-option[data-theme="default"]::before {
+    background: linear-gradient(135deg, #2563eb 0%, #764ba2 100%);
+}
+
+.theme-option[data-theme="dark"]::before {
+    background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+}
+
+.theme-option[data-theme="ocean"]::before {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+}
+
+.theme-option[data-theme="forest"]::before {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.theme-option[data-theme="sunset"]::before {
+    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+}
+
+.theme-option[data-theme="purple"]::before {
+    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+}
+
+.theme-option[data-theme="high-contrast"]::before {
+    background: linear-gradient(135deg, #000000 0%, #333333 100%);
+}
+
+/* Theme Toggle Animation */
+.theme-toggle {
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-toggle i {
+    transition: transform var(--transition-base);
+}
+
+.theme-toggle:hover i {
+    transform: rotate(180deg);
+}
+
+/* System Preference Support */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        /* Use dark theme colors by default if user prefers dark */
+        --primary-color: #60a5fa;
+        --primary-dark: #3b82f6;
+        --primary-light: #93c5fd;
+        --background-color: #0f172a;
+        --surface-color: #1e293b;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #64748b;
+        --border-color: #334155;
+    }
+}
+
+/* Print Theme */
+@media print {
+    :root {
+        --primary-color: #000000;
+        --background-color: #ffffff;
+        --text-primary: #000000;
+        --text-secondary: #333333;
+        --border-color: #cccccc;
+    }
+    
+    * {
+        color: black !important;
+        background: white !important;
+        box-shadow: none !important;
+    }
+}
